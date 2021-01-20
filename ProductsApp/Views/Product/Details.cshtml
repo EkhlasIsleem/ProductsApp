@@ -1,0 +1,42 @@
+﻿@model Product.DataAccess.Models.Products
+
+  
+<div class="container">
+    <h4 class="">Product Details</h4>
+    <br />
+    <br />
+    <div class="row">
+        <div class="col-md-6">
+            <div class="carousel-item active">
+                <img class="d-block w-100" src="~/img/product.jpg" alt="">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>@Model.Name</h1>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 ">
+                    <p class="description">
+                        @Model.Description
+                    </p>
+                </div>
+            </div>
+
+            <br />
+
+            <ul class="list-group">
+                <li class="list-group-item"><span class="font-weight-bold">Category - </span>Category</li>
+                <li class="list-group-item"><span class="font-weight-bold">Price - </span> @Model.Price</li>
+                <li class="list-group-item"><span class="font-weight-bold">Code - </span> @Model.Code</li>
+                <li class="list-group-item"><span class="font-weight-bold">Insert Date - </span> @Model.InsertedDate</li>
+            </ul>
+        </div>
+    </div>
+
+    <br />
+
+</div>

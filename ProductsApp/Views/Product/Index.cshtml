@@ -1,0 +1,74 @@
+﻿
+<div class="row">
+    <h3 class="col-sm-10"> All Products</h3>
+    <a href="/Product/Create" class="btn btn-sm btn-outline-primary badge-pill">
+        Add Product
+    </a>
+</div>
+<br />
+<div id="productGrid" style="width:100%;" class="ag-theme-balham"></div>
+
+<script>
+
+    var columnDefs = [
+        { headerName: "Id", field: "id"},
+        {
+            headerName: "Name", field: "name"
+        },
+        {
+            headerName: "InsertedDate", field: "insertedDate"
+        },
+        {
+            headerName: "Price", field: "price"
+        },
+        {
+            headerName: "Code", field: "code"
+        },
+        {
+            headerName: 'Action', editable: false, suppressSizeToFit: true, minWidth: 200,
+            cellRenderer: function (params) {
+                return '<a href="/Product/Edit/' + params["data"]["id"] + '" class="btn btn-sm btn-outline-primary badge-pill">Edit</a>&nbsp;'
+                    + '<a href="/Product/Delete/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-danger badge-pill btnDelete">Delete</a>'
+                    + '<a href="/Product/Details/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-success badge-pill">Details</a>'
+            }
+        }
+    ];
+
+    var gridOptions = {
+        defaultColDef: {
+            editable: false,
+            enableRowGroup: true,
+            enablePivot: true,
+            enableValue: true,
+            sortable: true,
+            resizable: true,
+            filter: true,
+            flex:1
+        },
+        suppressRowClickSelection: true,
+        columnDefs: columnDefs,
+        paginationPageSize: 20,
+        pagination: true,
+        getRowHeight: function (params) {
+            return 35;
+        },
+        rowSelection: 'multiple',
+        domLayout: 'autoHeight'
+
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var gridDiv = document.querySelector('#productGrid');
+        new agGrid.Grid(gridDiv, gridOptions);
+
+        agGrid
+            .simpleHttpRequest({
+                url:
+                    '/Product/IndexAjax',
+            })
+            .then(function (data) {
+                gridOptions.api.setRowData(data);
+            });
+    });
+
+</script>
