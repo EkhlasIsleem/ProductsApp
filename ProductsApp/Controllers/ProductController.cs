@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Product.DataAccess.Repositories;
 using Product.DataAccess.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Product.DataAccess.ViewModel;
+using AutoMapper;
 
 namespace ProductsApp.Controllers
 {
@@ -13,10 +15,13 @@ namespace ProductsApp.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
-        public ProductController(IProductRepository productRepository, ICategoryRepository categoryRepository)
+        private readonly IMapper _mapper;
+
+        public ProductController(IProductRepository productRepository, ICategoryRepository categoryRepository, IMapper mapper)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
+            _mapper = mapper;
         }
 
         public IActionResult Index()
@@ -26,24 +31,24 @@ namespace ProductsApp.Controllers
 
         public async Task<IActionResult> IndexAjax()
         {
-            return Json(await _productRepository.GetAllAsync());
+            return Json(_mapper.Map<List<ProductVM>>(await _productRepository.GetAllAsync()));
         }
 
 
-         public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var category = await _productRepository.FindAsync(id);
-            if (category == null)
+            var product = await _productRepository.FindAsync(id);
+            if (product == null)
             {
                 return NotFound();
             }
 
-            return View(category);
+            return View(_mapper.Map<ProductVM>(product));
         }
 
 
@@ -56,13 +61,13 @@ namespace ProductsApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Products product)
+        public async Task<IActionResult> Create(ProductVM product)
         {
             product.InsertedDate = DateTime.Now;
          ///   product.Category.Name = _categoryRepository.Find(product.CategoryId).Name;
             //if (ModelState.IsValid)
             //{
-                int id = await _productRepository.AddAsync(product);
+                int id = await _productRepository.AddAsync(_mapper.Map<Products>(product));
                 if (id > 0)
                 {
                     return RedirectToAction(nameof(Create), new { isSuccess = true });
@@ -84,12 +89,12 @@ namespace ProductsApp.Controllers
             {
                 return NotFound();
             }
-            return View(product);
+            return View(_mapper.Map<ProductVM>(product));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Products product)
+        public async Task<IActionResult> Edit(int id, ProductVM product)
         {
 
             if (id != product.Id)
@@ -100,7 +105,7 @@ namespace ProductsApp.Controllers
             //if (ModelState.IsValid)
             //{
 
-                int result = await _productRepository.UpdateAsync(product);
+                int result = await _productRepository.UpdateAsync(_mapper.Map<Products>(product));
 
                 if (result > 0)
                     return RedirectToAction(nameof(Index));
@@ -123,7 +128,7 @@ namespace ProductsApp.Controllers
                 return NotFound();
             }
 
-            return View(product);
+            return View(_mapper.Map<ProductVM>(product));
         }
 
         [HttpPost, ActionName("Delete")]

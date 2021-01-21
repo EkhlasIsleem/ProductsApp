@@ -1,0 +1,77 @@
+﻿@inject Product.DataAccess.Repositories.ICategoryRepository _category;
+@inject Product.DataAccess.Repositories.IProductRepository _product;
+@{
+    var products =await _product.GetAllAsync();
+    var categories =await _category.GetAllAsync();
+
+}
+@*
+        @model Product.DataAccess.Models.ViewModels.CategoryProductViewModel
+    <li class="dropdown sub-menu-list">
+            <a class="nav-link dropdown-toggle menu-item" href="#" id="navbarDropDowmMenuLink" role="button" data-toggle="dropdown" aria-expanded="true">
+                Products
+            </a>
+            <div class="sub-menu-container dropdown-menu " style="width: 900px; margin-left: -200.283px;">
+                <div class="container menu-container">
+                    <div class="row">
+                        <div class="col-lg-8 sub-menu-segment-border">
+                            <div class="row">
+                                @*  @foreach (var item in Model.ProductList)
+                                    {
+                                        <div class="col-lg-3">
+                                            <ul class="multi-column-dropdown">
+                                                <li class="sub-menu-title">@item.Category.Name</li>
+                                                <li class="sub-menu-item"><a href="/blazor-components">Blazor</a></li>
+                                                <li class="sub-menu-item"><a href="/flutter-widgets">Flutter (Beta)</a></li>
+                                            </ul>
+                                        </div>
+                                    }
+
+            @foreach (var category in Model.Categories.Distinct())
+        {
+            <li class="active has-sub">
+                <a href="#"><span>@category.Name</span></a>
+                <ul>
+                    @foreach (var product in Model.Products.Where(x => category.Id == x.CategoryId))
+                    {
+                        <li class="has-sub"><a href="/Products/Details?id=@product.Id"><span>@product.Name</span></a></li>
+
+                    }
+                </ul>
+
+            </li>
+        }
+*@
+<li class="mega-position nav-item dropdown text-white-50">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarDropDowmMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Product Managment
+    </a>
+    <div class="dropdown-menu col-lg-8 sub-menu-segment-border">
+        @foreach (var category in categories)
+        {
+            <div class="col-lg-3">
+                <ul class="multi-column-dropdown">
+                    <li class="active has-sub menu-title uppercase">
+                        <a href="#"><span>@category.Name</span></a>
+                        <ul>
+                            @foreach (var product in products.Where(x => category.Id == x.CategoryId))
+                            {
+                                <li class="has-sub"><a href="/Product/Details/@product.Id"><span>@product.Name</span></a></li>
+
+                            }
+                        </ul>
+
+                    </li>
+                </ul>
+            </div>
+        }
+    </div>
+</li>
+@* </div>
+    </div>
+    </div>
+
+    </div>
+    </div>
+    </li>
+*@ 

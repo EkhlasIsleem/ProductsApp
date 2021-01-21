@@ -4,18 +4,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Product.DataAccess.Models
+namespace Product.DataAccess.ViewModel
 {
-    public class Category
+    public class CategoryVM
     {
-        public Category()
-        {
-            Products = new HashSet<Products>();
-        }
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-
-        public virtual ICollection<Products> Products { get; set; }
     }
 }
