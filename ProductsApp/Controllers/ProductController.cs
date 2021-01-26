@@ -8,6 +8,7 @@ using Product.DataAccess.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Product.DataAccess.ViewModel;
 using AutoMapper;
+using System.Globalization;
 
 namespace ProductsApp.Controllers
 {
@@ -29,9 +30,14 @@ namespace ProductsApp.Controllers
             return View();
         }
 
-        public async Task<IActionResult> IndexAjax()
+       /* public async Task<IActionResult> IndexAjax()
         {
-            return Json(_mapper.Map<List<ProductVM>>(await _productRepository.GetAllAsync()));
+            return Json(_mapper.Map<List<ProductVM>>(await _productRepository.GetAllAsync()).Take(3));
+        } */
+        public IActionResult IndexAjax()
+        {
+            var data = _productRepository.GetAllAsyncPage(0, 3);
+            return Json(data.Item1);
         }
 
 
@@ -54,30 +60,49 @@ namespace ProductsApp.Controllers
 
         public IActionResult Create(bool isSuccess)
         {
-            ViewBag.categories = new SelectList( _categoryRepository.GetAll(), "Id", "Name");
             ViewBag.IsSuccess = isSuccess;
-            return View();
+            return View(new ProductVM
+            {
+                CategoryList = _categoryRepository.GetAll().Select(v => new SelectListItem
+                {
+                    Text = v.Name,
+                    Value = v.Id.ToString()
+                }).ToList()
+            });
         }
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductVM product)
         {
-            product.InsertedDate = DateTime.Now;
-         ///   product.Category.Name = _categoryRepository.Find(product.CategoryId).Name;
+           // product.InsertedDate = DateTime.Now.;
+            product.StartDateFormatted = DateTime.Now.ToShortDateString();
+          //  product.InsertedDate = DateTime.Parse(product.StartDateFormatted, CultureInfo.InvariantCulture); 
+            /*product.InsertedDate = new DateTime(Convert.ToInt32(product.StartDateFormatted.Substring(4, 4)), // Year
+                                    Convert.ToInt32(product.StartDateFormatted.Substring(2, 2)), // Month
+                                    Convert.ToInt32(product.StartDateFormatted.Substring(0, 2)));// Day*/
+            product.InsertedDate = DateTime.ParseExact(product.StartDateFormatted, "M/dd/yyyy", CultureInfo.InvariantCulture); 
+            if (!string.IsNullOrEmpty(product.Name))
+            {
+                var isExist = (await _categoryRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower()).ConfigureAwait(false)).Any();
+                if (isExist)
+                    return View(product);
+            }
             //if (ModelState.IsValid)
             //{
-                int id = await _productRepository.AddAsync(_mapper.Map<Products>(product));
+               int id= await _productRepository.AddAsync(_mapper.Map<Products>(product));
+                //return RedirectToAction(nameof(Create), new { isSuccess = true });
                 if (id > 0)
-                {
-                    return RedirectToAction(nameof(Create), new { isSuccess = true });
-                }else
-                    return View(product);
+                  {
+                   return RedirectToAction(nameof(Create), new { isSuccess = true });
+                  }else
+           // }
+            return View(product);
         }
 
         public async Task<IActionResult> Edit(int? id)
         {
-            ViewBag.categories = new SelectList(_categoryRepository.GetAll(), "Id", "Name");
+           // ViewBag.categories = new SelectList(_categoryRepository.GetAll(), "Id", "Name");
 
             if (id == null)
             {
@@ -89,7 +114,15 @@ namespace ProductsApp.Controllers
             {
                 return NotFound();
             }
-            return View(_mapper.Map<ProductVM>(product));
+            return View(new ProductVM
+            {
+                CategoryList = _categoryRepository.GetAll().Select(v => new SelectListItem
+                {
+                    Text = v.Name,
+                    Value = v.Id.ToString()
+                }).ToList()
+            });
+           // return View(_mapper.Map<ProductVM>(product));
         }
 
         [HttpPost]
@@ -101,18 +134,24 @@ namespace ProductsApp.Controllers
             {
                 return NotFound();
             }
+            if (!string.IsNullOrEmpty(product.Name))
+            {
+                var isExist = (await _categoryRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower() && c.Id != product.Id).ConfigureAwait(false)).Any();
+                if (isExist)
+                    return View(product);
+            }
+            if (ModelState.IsValid)
+            {
 
-            //if (ModelState.IsValid)
-            //{
+                await _productRepository.UpdateAsync(_mapper.Map<Products>(product));
+                return RedirectToAction(nameof(Index));
 
-                int result = await _productRepository.UpdateAsync(_mapper.Map<Products>(product));
-
-                if (result > 0)
+                /*if (result > 0)
                     return RedirectToAction(nameof(Index));
                 else
-                    return View(product);
-          //  }
-            //return View(product);
+                    return View(product);*/
+             }
+            return View(product);
         }
 
         public async Task<IActionResult> Delete(int? id)

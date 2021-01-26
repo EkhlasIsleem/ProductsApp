@@ -9,7 +9,13 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" data-ajax="true" data-ajax-method="POST"
+              data-ajax-mode="replace"
+              data-ajax-update="#content"
+              data-ajax-loading="#divloading"
+              data-ajax-success="Success"
+              data-ajax-failure="Failure">
+
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Name" class="control-label"></label>
@@ -26,6 +32,7 @@
                 <a asp-action="Index" class="btn btn-outline-dark">Categories List</a>
 
             </div>
+
         </form>
     </div>
 </div>
@@ -34,3 +41,19 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+<script type="text/javascript">
+    function Success(res) {
+        if (res == -1) {
+            swal(" ", "اسم الحصان موجود مسبقا", "warning");
+        }
+        else if (res == -2)
+            swal(" ", "رقم الحصان موجود مسبقا", "warning");
+
+        else if (res > 0) {
+            resetFields();
+            swal({ title: " ", text: "تمت الاضافة بنجاح", type: "success" });
+
+        }
+        else swal(" ", "حدث خطأ ", "error");
+    }
+</script>

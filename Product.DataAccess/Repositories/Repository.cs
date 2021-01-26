@@ -35,7 +35,17 @@ namespace Product.DataAccess.Repositories
         {
             return  Context.Set<TEntity>().ToList();
         }
+        public Tuple<List<TEntity>, int> GetAllAsyncPage(int pageNo, int pageSize)
+        {
+            var data=  Context.Set<TEntity>().ToList();
+            var total = data.Count();
 
+            if (pageNo != -1)
+            {
+                data = data.Skip(pageNo * pageSize).Take(pageSize).ToList();
+            }
+            return new Tuple<List<TEntity>, int>(data, total);
+        }
         public IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> predicate)
         {
             return Context.Set<TEntity>().Where(predicate);

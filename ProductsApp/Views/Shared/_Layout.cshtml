@@ -9,8 +9,9 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.0/css/all.css" integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-grid.css">
     <link rel="stylesheet" href="https://unpkg.com/ag-grid-community/dist/styles/ag-theme-balham.css">
-    <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
-
+    <link href="~/lib/bootstrap/dist/css/bootstrap4-toggle.min.css" rel="stylesheet" />
+    <link href="~/content/toastr.css" rel="stylesheet" />
+    <link href="~/css/style.bundle.css" rel="stylesheet" />
 </head>
 <body class="search-background">
     <header>
@@ -23,81 +24,8 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <partial name="_LoginPartial" />
-                    <div class="main-menu f-right">
+                    <div class="main-menu f-left">
                         <ul class="navbar-nav flex-grow-1">
-                            <!---->
-                            <li class="nav-item dropdown text-white-50">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropDowmMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Content Managment
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="navbarDropDowmMenuLink">
-                                    <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-area="">Category</a>
-                                    <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-area="">Sub Category</a>
-                                    <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-area="">MenuItem</a>
-                                    <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-area="">Coupons</a>
-                                    <a class="dropdown-item">Users</a>
-                                </div>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                            </li>
-                            <li class="mega-position nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropDowmMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Products
-                                </a>
-                                <div class="dropdown-menu col-lg-8 sub-menu-segment-border">
-                                    <div class="col-lg-3">
-                                        <ul class="multi-column-dropdown">
-                                            <li class="menu-title uppercase">clothing</li>
-                                            <li>
-                                                <a href="/Product/ShopPage?Cat=183">dresses</a>
-                                            </li>
-                                            <li>
-                                                <a href="/Product/ShopPage?Cat=184">jackets</a>
-                                            </li>
-                                            <li>
-                                                <a href="/Product/ShopPage?Cat=185">capes</a>
-                                            </li>
-                                            <li>
-                                                <a href="/Product/ShopPage?Cat=187">shirts</a>
-                                            </li>
-
-                                        </ul>
-                                    </div>
-
-                                    <div class="col-lg-3">
-
-                                        <ul class="multi-column-dropdown">
-                                            <li class="menu-title uppercase">home</li>
-                                            <li>
-                                                <a href="/Product/ShopPage?Cat=191">cushion covers</a>
-                                            </li>
-                                            <li>
-                                                <a href="/Product/ShopPage?Cat=192">frames</a>
-                                            </li>
-                                            <li>
-                                                <a href="/Product/ShopPage?Cat=193">tableware</a>
-                                            </li>
-
-                                        </ul>
-                                    </div>
-                                    <div class="col-lg-3">
-
-                                        <ul class="multi-column-dropdown">
-                                            <li class="menu-title uppercase">scarves &amp; shawls</li>
-                                            <li>
-                                                <a href="/Product/ShopPage?Cat=188">shawls</a>
-                                            </li>
-                                            <li>
-                                                <a href="/Product/ShopPage?Cat=189">scarf</a>
-                                            </li>
-
-                                        </ul>
-                                    </div>
-                                </div>
-                            </li>
-
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Product" asp-action="Index">All Products</a>
                             </li>
@@ -131,12 +59,19 @@
         </div>
     </div>
 
+    <script src="~/scripts/toastr.js"></script>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://unpkg.com/ag-grid-community/dist/ag-grid-community.min.noStyle.js"></script>
 
     <script src="https://cdn.tiny.cloud/1/mfo7rbk1ak4f0whljnl87rt4wtrcn23vtmqeqiv8fmy6mop5/tinymce/5/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap4-toggle.min.js"></script>
+    <script src="~/lib/Jquery-overlaysScrollbars/jquery.overlayScrollbars.min.js"></script>
 
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/scripts.bundle.js"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

@@ -1,5 +1,6 @@
 ﻿using Product.DataAccess.Data;
 using Product.DataAccess.Models;
+using Product.DataAccess.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;

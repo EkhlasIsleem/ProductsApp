@@ -1,12 +1,12 @@
-﻿
+﻿@model Product.DataAccess.ViewModel.CategoryVM
+
 <div class="row">
     <h4 class="col-sm-10"> All Categories</h4>
-    <a href="/Categories/Create" class="btn btn-sm btn-outline-primary badge-pill ">
+    <a href="/Categories/Create" class="btn btn-sm btn-outline-primary">
         Add Category
     </a>
 </div>
 <br />
-
 <div id="categoryGrid" style="width:100%;" class="ag-theme-balham"></div>
 
 <script>
@@ -22,10 +22,13 @@
         {
             headerName: 'Action', editable: false, suppressSizeToFit: true,
             cellRenderer: function (params) {
-                return '<a href="/Categories/Edit/' + params["data"]["id"] + '" class="btn btn-sm btn-outline-primary badge-pill">Edit</a>&nbsp;'
-                    + '<a href="/Categories/Delete/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-danger badge-pill btnDelete">Delete</a>'
-                    + '<a href="/Categories/Details/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-success badge-pill">Details</a>'
+                return '<a href="/Categories/Edit/' + params["data"]["id"] + '" class="btn btn-sm btn-outline-primary">Edit</a>&nbsp;'
+                    + '<a href="/Categories/Delete/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-danger btnDelete">Delete</a>&nbsp;'
+                    + '<a href="/Categories/Details/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-success">Details</a>'
+                    + '<a href="/Categories/_Edit/' + params["data"]["id"] + '" ajaxType="GET" class="btn btn-secondary btn-sm openModal">edit</a>&nbsp;'
+
             }
+
         }
     ];
 

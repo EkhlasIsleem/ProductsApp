@@ -1,7 +1,7 @@
 ﻿
 <div class="row">
     <h3 class="col-sm-10"> All Products</h3>
-    <a href="/Product/Create" class="btn btn-sm btn-outline-primary badge-pill">
+    <a href="/Product/Create" class="btn btn-sm btn-outline-primary">
         Add Product
     </a>
 </div>
@@ -27,9 +27,9 @@
         {
             headerName: 'Action', editable: false, suppressSizeToFit: true, minWidth: 200,
             cellRenderer: function (params) {
-                return '<a href="/Product/Edit/' + params["data"]["id"] + '" class="btn btn-sm btn-outline-primary badge-pill">Edit</a>&nbsp;'
-                    + '<a href="/Product/Delete/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-danger badge-pill btnDelete">Delete</a>'
-                    + '<a href="/Product/Details/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-success badge-pill">Details</a>'
+                return '<a href="/Product/Edit/' + params["data"]["id"] + '" class="btn btn-sm btn-outline-primary">Edit</a>&nbsp;'
+                    + '<a href="/Product/Delete/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-danger btnDelete">Delete</a>&nbsp;'
+                    + '<a href="/Product/Details/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-success">Details</a>'
             }
         }
     ];
@@ -47,7 +47,8 @@
         },
         suppressRowClickSelection: true,
         columnDefs: columnDefs,
-        paginationPageSize: 20,
+        //paginationPageSize: 10,
+      //  paginationAutoPageSize=true,
         pagination: true,
         getRowHeight: function (params) {
             return 35;
@@ -65,6 +66,7 @@
             .simpleHttpRequest({
                 url:
                     '/Product/IndexAjax',
+                params:
             })
             .then(function (data) {
                 gridOptions.api.setRowData(data);

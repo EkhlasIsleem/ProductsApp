@@ -12,6 +12,7 @@ namespace Product.DataAccess.Repositories
 
         TEntity Find(object id);
 
+        Tuple<List<TEntity>, int> GetAllAsyncPage(int pageNo, int pageSize);
         Task<IEnumerable<TEntity>> GetAllAsync();
        IEnumerable<TEntity> GetAll();
 
