@@ -1,5 +1,5 @@
 ﻿@model Product.DataAccess.ViewModel.CategoryVM
-    <form asp-action="Edit" method="post" asp-controller="Categories" id="EditForm" class="ajaxForm">
+    <form asp-action="Edit" method="post" asp-controller="Categories" class="ajaxForm">
 
         <div class="modal-header">
             <h5 class="modal-title" id="exampleModalLabel">Edit Category @(string.IsNullOrEmpty(Model.Name) ? "(Newly registered)" : "")</h5>

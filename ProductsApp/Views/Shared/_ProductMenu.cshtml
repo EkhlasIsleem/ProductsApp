@@ -19,7 +19,7 @@
                         <ul>
                             @foreach (var product in products.Where(x => category.Id == x.CategoryId))
                             {
-                                <li class="has-sub"><a href="/Product/Details/@product.Id"><span>@product.Name</span></a></li>
+                                <li class="has-sub"><a href="/Product/_Details/@product.Id"><span>@product.Name</span></a></li>
 
                             }
                         </ul>
@@ -30,11 +30,3 @@
         }
     </div>
 </li>
-@* </div>
-    </div>
-    </div>
-
-    </div>
-    </div>
-    </li>
-*@ 

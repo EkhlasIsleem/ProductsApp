@@ -1,7 +1,8 @@
-﻿
+﻿@model Product.DataAccess.ViewModel.ProductVM
+
 <div class="row">
     <h3 class="col-sm-10"> All Products</h3>
-    <a href="/Product/Create" class="btn btn-sm btn-outline-primary">
+    <a href="/Product/_Create" class="btn btn-sm btn-outline-primary openModal"  ajaxType="GET">
         Add Product
     </a>
 </div>
@@ -11,12 +12,14 @@
 <script>
 
     var columnDefs = [
-        { headerName: "Id", field: "id"},
+        { headerName: "Id", field: "id" },
         {
             headerName: "Name", field: "name"
         },
         {
-            headerName: "InsertedDate", field: "insertedDate"
+            headerName: "InsertedDate", field: "insertedDate", cellRenderer: (data) => {
+                return data.value ? (new Date(data.value)).toLocaleDateString() : '';
+            }
         },
         {
             headerName: "Price", field: "price"
@@ -25,14 +28,15 @@
             headerName: "Code", field: "code"
         },
         {
-            headerName: 'Action', editable: false, suppressSizeToFit: true, minWidth: 200,
+            headerName: 'Action', editable: false, suppressSizeToFit: true,
             cellRenderer: function (params) {
-                return '<a href="/Product/Edit/' + params["data"]["id"] + '" class="btn btn-sm btn-outline-primary">Edit</a>&nbsp;'
-                    + '<a href="/Product/Delete/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-danger btnDelete">Delete</a>&nbsp;'
-                    + '<a href="/Product/Details/' + params["data"]["id"] + '"  class="btn btn-sm btn-outline-success">Details</a>'
+                return '<a href="/Product/_Edit/' + params["data"]["id"] + '" ajaxType="GET" class="btn btn-sm btn-outline-primary openModal">Edit</a>&nbsp;'
+                    + '<a href="/Product/Delete/' + params["data"]["id"] + '"  ajaxType="GET" confirmButtonText="Yes, Cancel it!" msgHeader="Canceled!"  class="btn btn-sm btn-outline-danger btnDelete confirm">Delete</a>&nbsp;'
+                    + '<a href="/Product/_Details/' + params["data"]["id"] + '"ajaxType="GET"  class="btn btn-sm btn-outline-success openModal">Details</a>'
             }
         }
     ];
+
 
     var gridOptions = {
         defaultColDef: {
@@ -43,12 +47,11 @@
             sortable: true,
             resizable: true,
             filter: true,
-            flex:1
+            flex: 1
         },
         suppressRowClickSelection: true,
         columnDefs: columnDefs,
-        //paginationPageSize: 10,
-      //  paginationAutoPageSize=true,
+        paginationPageSize: 20,
         pagination: true,
         getRowHeight: function (params) {
             return 35;
@@ -65,12 +68,22 @@
         agGrid
             .simpleHttpRequest({
                 url:
-                    '/Product/IndexAjax',
-                params:
+                    'Product/IndexAjax',
             })
             .then(function (data) {
                 gridOptions.api.setRowData(data);
             });
     });
 
+
+    function refresh() {
+        agGrid
+            .simpleHttpRequest({
+                url:
+                    'Product/IndexAjax',
+            })
+            .then(function (data) {
+                gridOptions.api.setRowData(data);
+            });
+    }
 </script>

@@ -1715,10 +1715,7 @@ var KTPortlet = function(elementId, options) {
                 off: 'Exit Fullscreen'
             }
         },
-        sticky: {
-            offset: 300,
-            zIndex: 101
-        }
+       
     };
 
     ////////////////////////////
@@ -1807,102 +1804,7 @@ var KTPortlet = function(elementId, options) {
 
             Plugin.setupTooltips();
         },
-
-        /**
-         * Enable stickt mode
-         */
-        initSticky: function() {
-            var lastScrollTop = 0;
-            var offset = the.options.sticky.offset;
-
-            if (!the.head) {
-                return;
-            }
-
-	        window.addEventListener('scroll', Plugin.onScrollSticky);
-        },
-
-	    /**
-	     * Window scroll handle event for sticky portlet
-	     */
-	    onScrollSticky: function(e) {
-		    var offset = the.options.sticky.offset;
-
-		    if(isNaN(offset)) return;
-
-		    var st = KTUtil.getScrollTop();
-
-		    if (st >= offset && KTUtil.hasClass(body, 'kt-portlet--sticky') === false) {
-			    Plugin.eventTrigger('stickyOn');
-
-			    KTUtil.addClass(body, 'kt-portlet--sticky');
-			    KTUtil.addClass(element, 'kt-portlet--sticky');
-
-			    Plugin.updateSticky();
-
-		    } else if ((st*1.5) <= offset && KTUtil.hasClass(body, 'kt-portlet--sticky')) {
-			    // back scroll mode
-			    Plugin.eventTrigger('stickyOff');
-
-			    KTUtil.removeClass(body, 'kt-portlet--sticky');
-			    KTUtil.removeClass(element, 'kt-portlet--sticky');
-
-			    Plugin.resetSticky();
-		    }
-	    },
-
-        updateSticky: function() {
-            if (!the.head) {
-                return;
-            }
-
-            var top;
-
-            if (KTUtil.hasClass(body, 'kt-portlet--sticky')) {
-                if (the.options.sticky.position.top instanceof Function) {
-                    top = parseInt(the.options.sticky.position.top.call(this, the));
-                } else {
-                    top = parseInt(the.options.sticky.position.top);
-                }
-
-                var left;
-                if (the.options.sticky.position.left instanceof Function) {
-                    left = parseInt(the.options.sticky.position.left.call(this, the));
-                } else {
-                    left = parseInt(the.options.sticky.position.left);
-                }
-
-                var right;
-                if (the.options.sticky.position.right instanceof Function) {
-                    right = parseInt(the.options.sticky.position.right.call(this, the));
-                } else {
-                    right = parseInt(the.options.sticky.position.right);
-                }
-
-                KTUtil.css(the.head, 'z-index', the.options.sticky.zIndex);
-                KTUtil.css(the.head, 'top', top + 'px');
-                KTUtil.css(the.head, 'left', left + 'px');
-                KTUtil.css(the.head, 'right', right + 'px');
-            }
-        },
-
-        resetSticky: function() {
-            if (!the.head) {
-                return;
-            }
-
-            if (KTUtil.hasClass(body, 'kt-portlet--sticky') === false) {
-                KTUtil.css(the.head, 'z-index', '');
-                KTUtil.css(the.head, 'top', '');
-                KTUtil.css(the.head, 'left', '');
-                KTUtil.css(the.head, 'right', '');
-            }
-        },
-
-        /**
-         * Remove portlet
-         */
-        remove: function() {
+  remove: function() {
             if (Plugin.eventTrigger('beforeRemove') === false) {
                 return;
             }
@@ -2212,42 +2114,7 @@ var KTPortlet = function(elementId, options) {
      * Remove portlet
      * @returns {KTPortlet}
      */
-    the.initSticky = function() {
-        return Plugin.initSticky();
-    };
-
-    /**
-     * Remove portlet
-     * @returns {KTPortlet}
-     */
-    the.updateSticky = function() {
-        return Plugin.updateSticky();
-    };
-
-    /**
-     * Remove portlet
-     * @returns {KTPortlet}
-     */
-    the.resetSticky = function() {
-        return Plugin.resetSticky();
-    };
-
-	/**
-	 * Destroy sticky portlet
-	 */
-	the.destroySticky = function() {
-		Plugin.resetSticky();
-		window.removeEventListener('scroll', Plugin.onScrollSticky);
-	};
-
-    /**
-     * Reload portlet
-     * @returns {KTPortlet}
-     */
-    the.reload = function() {
-        return Plugin.reload();
-    };
-
+   
     /**
      * Set portlet content
      * @returns {KTPortlet}
@@ -8831,7 +8698,6 @@ var KTLayout = function() {
 
     var scrollTop;
 
-    var pageStickyPortlet;
 
     // Header
     var initHeader = function() {
@@ -8971,219 +8837,8 @@ var KTLayout = function() {
     }
 
     // Sidebar toggle
-    var initAsideToggler = function() {
-        if (!KTUtil.get('kt_aside_toggler')) {
-            return;
-        }
 
-        asideToggler = new KTToggle('kt_aside_toggler', {
-            target: 'body',
-            targetState: 'kt-aside--minimize',
-            togglerState: 'kt-aside__brand-aside-toggler--active'
-        });
 
-        asideToggler.on('toggle', function(toggle) {
-            KTUtil.addClass(body, 'kt-aside--minimizing');
-
-            if (KTUtil.get('kt_page_portlet')) {
-                pageStickyPortlet.updateSticky();
-            }
-
-            KTUtil.transitionEnd(body, function() {
-                KTUtil.removeClass(body, 'kt-aside--minimizing');
-            });
-
-            headerMenu.pauseDropdownHover(800);
-            asideMenu.pauseDropdownHover(800);
-
-            // Remember state in cookie
-            Cookies.set('kt_aside_toggle_state', toggle.getState());
-            // to set default minimized left aside use this cookie value in your
-            // server side code and add "kt-brand--minimize kt-aside--minimize" classes to
-            // the body tag in order to initialize the minimized left aside mode during page loading.
-        });
-
-        asideToggler.on('beforeToggle', function(toggle) {
-            var body = KTUtil.get('body');
-            if (KTUtil.hasClass(body, 'kt-aside--minimize') === false && KTUtil.hasClass(body, 'kt-aside--minimize-hover')) {
-                KTUtil.removeClass(body, 'kt-aside--minimize-hover');
-            }
-        });
-    }
-
-    // Scrolltop
-    var initScrolltop = function() {
-        var scrolltop = new KTScrolltop('kt_scrolltop', {
-            offset: 300,
-            speed: 600
-        });
-    }
-
-	// Init page sticky portlet
-	var initPageStickyPortlet = function() {
-		var asideWidth = 265;
-		var asideMinimizeWidth = 70;
-		var asideSecondaryWidth = 60;
-		var asideSecondaryExpandedWidth = 310;
-
-		return new KTPortlet('kt_page_portlet', {
-			sticky: {
-				offset: parseInt(KTUtil.css(KTUtil.get('kt_header'), 'height')) + 200,
-				zIndex: 90,
-				position: {
-					top: function() {
-						var pos = 0;
-
-						if (KTUtil.isInResponsiveRange('desktop')) {
-							if (KTUtil.hasClass(body, 'kt-header--fixed')) {
-								pos = pos + 55;
-							}
-
-							if (KTUtil.hasClass(body, 'kt-subheader--fixed') && KTUtil.get('kt_subheader')) {
-								pos = pos + parseInt(KTUtil.css(KTUtil.get('kt_subheader'), 'height'));
-							}
-						} else {
-							if (KTUtil.hasClass(body, 'kt-header-mobile--fixed')) {
-								pos = pos + parseInt(KTUtil.css(KTUtil.get('kt_header_mobile'), 'height'));
-							}
-						}
-
-						return pos;
-					},
-					left: function(portlet) {
-						var porletEl = portlet.getSelf();
-
-						return KTUtil.offset(porletEl).left;
-					},
-					right: function(portlet) {
-                        var porletEl = portlet.getSelf();
-
-                        var portletWidth = parseInt(KTUtil.css(porletEl, 'width'));
-						var bodyWidth = parseInt(KTUtil.css(KTUtil.get('body'), 'width'));
-						var portletOffsetLeft = KTUtil.offset(porletEl).left;
-
-						return bodyWidth - portletWidth - portletOffsetLeft;
-					}
-				}
-			}
-		});
-	}
-
-	// Calculate content available full height
-	var getContentHeight = function() {
-		var height;
-
-		height = KTUtil.getViewPort().height;
-
-		if (KTUtil.getByID('kt_header')) {
-            height = height - KTUtil.actualHeight('kt_header');
-		}
-
-		if (KTUtil.getByID('kt_subheader')) {
-            height = height - KTUtil.actualHeight('kt_subheader');
-		}
-
-		if (KTUtil.getByID('kt_footer')) {
-			height = height - parseInt(KTUtil.css('kt_footer', 'height'));
-		}
-
-		if (KTUtil.getByID('kt_content')) {
-			height = height - parseInt(KTUtil.css('kt_content', 'padding-top')) - parseInt(KTUtil.css('kt_content', 'padding-bottom'));
-		}
-
-		return height;
-	}
-
-    return {
-        init: function() {
-            body = KTUtil.get('body');
-
-            this.initHeader();
-            this.initAside();
-            this.initPageStickyPortlet();
-
-            // Non functional links notice(can be removed in production)
-			$('#kt_aside_menu, #kt_header_menu').on('click', '.kt-menu__link[href="#"]', function(e) {
-				swal.fire("", "You have clicked on a non-functional dummy link!");
-
-				e.preventDefault();
-			});
-        },
-
-        initHeader: function() {
-            initHeader();
-            initHeaderMenu();
-            initHeaderTopbar();
-            initScrolltop();
-        },
-
-        initAside: function() {
-            initAside();
-            initAsideMenu();
-            initAsideToggler();
-
-            this.onAsideToggle(function(e) {
-                // Update sticky portlet
-                if (pageStickyPortlet) {
-                    pageStickyPortlet.updateSticky();
-                }
-
-                // Reload datatable
-                var datatables = $('.kt-datatable');
-                if (datatables) {
-                    datatables.each(function() {
-                        $(this).KTDatatable('redraw');
-                    });
-                }
-            });
-        },
-
-        initPageStickyPortlet: function() {
-            if (!KTUtil.get('kt_page_portlet')) {
-                return;
-            }
-
-            pageStickyPortlet = initPageStickyPortlet();
-            pageStickyPortlet.initSticky();
-
-            KTUtil.addResizeHandler(function(){
-                pageStickyPortlet.updateSticky();
-            });
-
-            initPageStickyPortlet();
-        },
-
-        getAsideMenu: function() {
-            return asideMenu;
-        },
-
-        onAsideToggle: function(handler) {
-            if (typeof asideToggler.element !== 'undefined') {
-                asideToggler.on('toggle', handler);
-            }
-        },
-
-        getAsideToggler: function() {
-            return asideToggler;
-        },
-
-        closeMobileAsideMenuOffcanvas: function() {
-            if (KTUtil.isMobileDevice()) {
-                asideMenuOffcanvas.hide();
-            }
-        },
-
-        closeMobileHeaderMenuOffcanvas: function() {
-            if (KTUtil.isMobileDevice()) {
-                headerMenuOffcanvas.hide();
-            }
-        },
-
-        getContentHeight: function() {
-			return getContentHeight();
-		}
-    };
-}();
 
 // webpack support
 if (typeof module !== 'undefined') {

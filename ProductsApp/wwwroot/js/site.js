@@ -31,9 +31,9 @@ function ShowMessage(msg, color, title) {
 
         msg = errorsHtml;
     }
-    Command: toastr["success"]("ww", "w")
+    //Command: toastr["success"]("ww", "w")
 
-    //Command: toastr[color](msg, title);
+    Command: toastr[color](msg, title);
 }
 function isNotNullAndUndef(variable) {
     return (variable != null && variable != undefined && $.trim(variable) != "");
@@ -60,7 +60,7 @@ $(document).on("click", ".openModal", function (e) {
     if (modelsize == "modal-xl") { $(".modal-dialog").addClass("modal-xl"); } else { $(".modal-dialog").removeClass("modal-xl") };
     if (modelsize == "modal-xxl") { $(".modal-dialog").addClass("modal-xxl"); } else { $(".modal-dialog").removeClass("modal-xxl") };
     getModalContent(href, ajaxType, "#" + modalid + "", title, outsidedisabled, function () {
-        //loadAjaxFormForPartialView();
+        loadAjaxFormForPartialView();
     });
 });
 const ScrollOptions = {
@@ -69,6 +69,41 @@ const ScrollOptions = {
         autoHideDelay: 1500
     }
 };
+function loadAjaxFormForPartialView() {
+
+    $(".ajaxForm").ajaxForm(
+        {
+            success: function (json) {
+                $(".ajaxForm :submit").prop("disabled", false);
+                if (json.status == 1) {
+                    ShowMessage(json.msg, json.color, json.management);
+                    if (json.link != "") {
+                        setTimeout(function () { window.location.replace(json.link); }, 800);
+                    } else {
+                        $('.ajaxForm').resetForm();
+                    }
+                    $("#OpenModal").modal('hide');
+
+                } else if (json.status == 0) {
+                    ShowMessage(json.msg, json.color, json.management);
+                } else if (json.status == -1) {
+                    ShowMessage(json.msg, json.color, json.management);
+                }
+
+                jQuery.isFunction(refresh());
+
+            }, beforeSubmit: function () {
+                $(".ajaxForm :submit").prop("disabled", true);
+            }
+            , error: function (json) {
+            }
+        });
+
+    $(".select-2-drodpdown").select2({
+        closeOnSelect: false,
+    });
+}
+
 function getModalContent(sourceUrl, ajaxType, modalWrapper, title, outSideDisabled, param1) {
     if (title) {
         $(modalWrapper + ' .modal-title').html(title);
@@ -132,36 +167,57 @@ function getModalContent(sourceUrl, ajaxType, modalWrapper, title, outSideDisabl
         $(modalWrapper).modal('show');
     }
 }
-/*
-function loadAjaxFormForPartialView() {
 
-    $(".ajaxForm").ajaxForm(
-        {
-            success: function (json) {
-                $(".ajaxForm :submit").prop("disabled", false);
+$(document).on("click", ".confirm", function (e) {
+    e.preventDefault();
+    var link;
+    if ($(this).attr('href')) {
+        link = $(this).attr('href');
+    }
+    else {
+        link = $(this).data('href');
+    }
+
+    Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, delete it!"
+    }).then(function (e, json) {
+        if (e.value) {
+            $.get(link, function (json) {
                 if (json.status == 1) {
-                    ShowMessage(json.msg, json.color, json.management);
-                    if (json.link != "") {
-                        setTimeout(function () { window.location.replace(json.link); }, 800);
-                    } else {
-                        $('.ajaxForm').resetForm();
+                    if (json.link == '') {
+                        Swal.fire("Deleted!", json.msg, "success").then(function (e) {
+                            jQuery.isFunction(refresh());
+                            e.value;
+                        });
                     }
-                    $("#OpenModal").modal('hide');
+                    else {
+                        Swal.fire("Deleted!", json.msg, "success").then(function (e) {
+                            e.value && window.location.replace(json.link);
+                        });
+                    }
 
-                } else if (json.status == 0) {
-                    ShowMessage(json.msg, json.color, json.management);
                 } else if (json.status == -1) {
-                    ShowMessage(errorsHtml, json.color, json.management);
+                    if (json.link != "") {
+                        Swal.fire("Deleted!", json.msg, "success").then(function (e) {
+                            e.value && window.location.replace(json.link);
+                        });
+                    }
+                    else {
+                        e.value && swal("Deleted!", json.msg, "error");
+                    }
+                } else if (json.status == 0) {
+                    e.value && swal("Unable to Delete!", json.msg, "error");
                 }
-            }, beforeSubmit: function () {
-                $(".ajaxForm :submit").prop("disabled", true);
-            }
-            , error: function (json) {
-            }
-        });
-
-    $(".select-2-drodpdown").select2({
-        closeOnSelect: false,
+            });
+        }
+        else {
+            Swal.close();
+            $('div.modal-backdrop').removeClass("show");
+        }
     });
-}
-*/
+    return false;
+});

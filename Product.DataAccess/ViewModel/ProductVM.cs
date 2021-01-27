@@ -21,8 +21,7 @@ namespace Product.DataAccess.ViewModel
         public decimal Price { get; set; }
         [Required(ErrorMessage = "Code is Required")]
         public string Code { get; set; }
-        public DateTime InsertedDate { get; set; }
-        [Required(ErrorMessage = "Inserted Date is required")]
+        public DateTime? InsertedDate { get; set; }
         public string StartDateFormatted { get; set; }
         [Required(ErrorMessage = "Category is Required")]
         public int CategoryId { get; set; }

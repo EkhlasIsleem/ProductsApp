@@ -36,65 +36,79 @@ namespace ProductsApp.Controllers
         {
             return Json(_mapper.Map<List<CategoryVM>>(await _categoryRepository.GetAllAsync()));
         }
-
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> _Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-
             var category = await _categoryRepository.FindAsync(id);
             if (category == null)
             {
                 return NotFound();
             }
 
-            return View(_mapper.Map<CategoryVM>(category));
+            return PartialView(_mapper.Map<CategoryVM>(category));
         }
 
-
-        public IActionResult Create()
+        public IActionResult _Create()
         {
-            return View();
+            var model = new CategoryVM{};
+            return PartialView(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CategoryVM category)
         {
-            var res = 0;
-            if (!string.IsNullOrEmpty(category.Name))
-            {
-                var isExist = _categoryRepository.Get(c => c.Name == category.Name).Count() > 0;
-                if (isExist)
-                   return View(category);
-                //res = -1;
-                //return res;
-            }
+            
             if (ModelState.IsValid)
             {
-               await _categoryRepository.AddAsync(_mapper.Map<Category>(category));
-                 return RedirectToAction(nameof(Index));
-                //res = 1;
-                //return res;
+                if (!string.IsNullOrEmpty(category.Name))
+                {
+                    var isExist = _categoryRepository.Get(c => c.Name == category.Name).Count() > 0;
+                    if (isExist)
+                        return Json(new
+                        {
+                            status = JsonStatus.Exist,
+                            link = "",
+                            color = NotificationColor.Error.ToColorName(),
+                            management = "Category Management",
+                            msg = "Category is exist.",
+                            editResult = category
+                        });                
+                }
+                await _categoryRepository.AddAsync(_mapper.Map<Category>(category));
+              
+                return Json(new
+                {
+                    status = JsonStatus.Success,
+                    link = "",
+                    color = NotificationColor.Success.ToColorName(),
+                    management = "Category Management",
+                    msg = "Category was updated successfully into the database.",
+                    editResult = category
+                });
             }
-            //return res;
-             return View(category);
-        }
-
-        public async Task<IActionResult> Edit(int? id)
-        {
-            var category = await _categoryRepository.FindAsync(id);
-            return View(_mapper.Map<CategoryVM>(category));
+            return Json(new
+            {
+                status = JsonStatus.Exist,
+                link = "",
+                color = NotificationColor.Error.ToColorName(),
+                management = "Category Management",
+                msg = ModelState.Keys.SelectMany(k => ModelState[k].Errors)
+                                                    .Select(m => m.ErrorMessage).ToArray()
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CategoryVM category)
         {
-          
-            if (!string.IsNullOrEmpty(category.Name))
+            if (ModelState.IsValid)
+            {
+
+                if (!string.IsNullOrEmpty(category.Name))
             {
                 var isExist = (await _categoryRepository.GetAsync(c => c.Name.ToLower() == category.Name.ToLower() && c.Id != category.Id).ConfigureAwait(false)).Any();
                 if (isExist)
@@ -109,9 +123,8 @@ namespace ProductsApp.Controllers
                         editResult = category
                     });
             }
-            if (ModelState.IsValid)
-            {
-                 await _categoryRepository.UpdateAsync(_mapper.Map<Category>(category));
+             
+                await _categoryRepository.UpdateAsync(_mapper.Map<Category>(category));
                 // return RedirectToAction(nameof(Index));
                 return Json(new
                 {
@@ -124,7 +137,15 @@ namespace ProductsApp.Controllers
                 });
             }
 
-            return View(category);
+            return Json(new
+            {
+                status = JsonStatus.Exist,
+                link = "",
+                color = NotificationColor.Error.ToColorName(),
+                management = "Category Management",
+                msg = ModelState.Keys.SelectMany(k => ModelState[k].Errors)
+                                         .Select(m => m.ErrorMessage).ToArray()
+            });
         }
         public async Task<IActionResult> _Edit(int id)
         {
@@ -133,44 +154,20 @@ namespace ProductsApp.Controllers
             
             return PartialView(modelVm);
         }
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
+            var model = await _categoryRepository.FindAsync(id).ConfigureAwait(false);
+            await _categoryRepository.RemoveAsync(model).ConfigureAwait(false);
+
+            return Json(new
             {
-                return NotFound();
-            }
-
-            var category = await _categoryRepository.FindAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            return View(_mapper.Map<CategoryVM>(category));
+                status = JsonStatus.Success,
+                link = "",
+                color = NotificationColor.Success.ToColorName(),
+                management = "category",
+                msg = "category was deleted successfully form the database."
+            });
         }
-
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var category = await _categoryRepository.FindAsync(id);
-            await _categoryRepository.RemoveAsync(category);
-            return RedirectToAction(nameof(Index));
-        }
-
-        //public async Task<IActionResult> Delete(int id)
-        //{
-        //    var model = await _categoryRepository.FindAsync(id).ConfigureAwait(false);
-
-        //    await _categoryRepository.RemoveAsync(model).ConfigureAwait(false);
-        //    return Json(new
-        //    {
-        //        status = 1,
-        //        link = "",
-        //        management = "Category",
-        //        msg = "Category was deleted successfully form the database."
-        //    });
-        //}
-
+     
     }
 }

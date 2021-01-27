@@ -1,14 +1,17 @@
 ﻿@model Product.DataAccess.ViewModel.ProductVM
 
-@{
-    ViewData["Title"] = "Edit Product";
-}
-<div class="container">
-    <h4 class="">Edit Product</h4>
-    <br />
+<form asp-action="Edit" method="post" asp-controller="product" class="ajaxForm" enctype="multipart/form-data">
 
+    <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Edit Product @(string.IsNullOrEmpty(Model.Name) ? "(Newly registered)" : "")</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
 
-    <form method="post" enctype="multipart/form-data">
+    <div class="modal-body">
+        <input type="hidden" asp-for="Id" />
+
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
 
@@ -23,7 +26,7 @@
         </div>
         <div class="form-group">
             <label asp-for="CategoryId"></label>
-            <select asp-for="CategoryId" class="form-control" asp-items="Model.CategoryList">
+            <select asp-for="CategoryId" class="form-control selected" asp-items="Model.CategoryList" >
                 <option value="">Please choose a category</option>
             </select>
             <span asp-validation-for="CategoryId" class="text-danger"></span>
@@ -44,16 +47,20 @@
             <input asp-for="Price" type="number" class="form-control" />
             <span asp-validation-for="Price" class="text-danger"></span>
         </div>
+    </div>
 
-        <div class="form-actions">
-            <input type="submit" value="Edit Product" class="btn btn-primary" />
-            <a href="/Product/" class="btn btn-outline-dark">Products List</a>
-
+    <div class="modal-footer">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="float-right">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>&nbsp;
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
+            </div>
         </div>
-    </form>
-</div>
+    </div>
+</form>
 
-<br />
-<br />
-<br />
-
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

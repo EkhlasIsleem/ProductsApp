@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Product.DataAccess.ViewModel;
 using AutoMapper;
 using System.Globalization;
+using Product.DataAccess.Enum;
+using Product.DataAccess.Base.Enum;
 
 namespace ProductsApp.Controllers
 {
@@ -41,7 +43,7 @@ namespace ProductsApp.Controllers
         }
 
 
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> _Details(int? id)
         {
             if (id == null)
             {
@@ -54,129 +56,170 @@ namespace ProductsApp.Controllers
                 return NotFound();
             }
 
-            return View(_mapper.Map<ProductVM>(product));
+            return PartialView(_mapper.Map<ProductVM>(product));
         }
 
-
-        public IActionResult Create(bool isSuccess)
+        public IActionResult _Create()
         {
-            ViewBag.IsSuccess = isSuccess;
-            return View(new ProductVM
+            var model = new ProductVM
             {
                 CategoryList = _categoryRepository.GetAll().Select(v => new SelectListItem
                 {
                     Text = v.Name,
                     Value = v.Id.ToString()
                 }).ToList()
-            });
+            };
+            return PartialView(model);
         }
         
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductVM product)
         {
-           // product.InsertedDate = DateTime.Now.;
-            product.StartDateFormatted = DateTime.Now.ToShortDateString();
-          //  product.InsertedDate = DateTime.Parse(product.StartDateFormatted, CultureInfo.InvariantCulture); 
-            /*product.InsertedDate = new DateTime(Convert.ToInt32(product.StartDateFormatted.Substring(4, 4)), // Year
-                                    Convert.ToInt32(product.StartDateFormatted.Substring(2, 2)), // Month
-                                    Convert.ToInt32(product.StartDateFormatted.Substring(0, 2)));// Day*/
-            product.InsertedDate = DateTime.ParseExact(product.StartDateFormatted, "M/dd/yyyy", CultureInfo.InvariantCulture); 
-            if (!string.IsNullOrEmpty(product.Name))
+            product.InsertedDate = DateTime.Now.Date;
+            // product.StartDateFormatted = DateTime.ParseExact(product.StartDateFormatted, "MM/dd/yyyy", CultureInfo.InvariantCulture); 
+            if (ModelState.IsValid)
             {
-                var isExist = (await _categoryRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower()).ConfigureAwait(false)).Any();
+                if (!string.IsNullOrEmpty(product.Name))
+            {
+                var isExist = (await _productRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower()).ConfigureAwait(false)).Any();
                 if (isExist)
-                    return View(product);
+                    return Json(new
+                    {
+                        status = JsonStatus.Exist,
+                        link = "",
+                        color = NotificationColor.Error.ToColorName(),
+                        management = "product Management",
+                        msg = "product is exist.",
+                        editResult = product
+                    });
             }
-            //if (ModelState.IsValid)
-            //{
-               int id= await _productRepository.AddAsync(_mapper.Map<Products>(product));
-                //return RedirectToAction(nameof(Create), new { isSuccess = true });
-                if (id > 0)
-                  {
-                   return RedirectToAction(nameof(Create), new { isSuccess = true });
-                  }else
-           // }
-            return View(product);
+           
+            await _productRepository.AddAsync(_mapper.Map<Products>(product));
+
+                return Json(new
+                {
+                    status = JsonStatus.Success,
+                    link = "",
+                    color = NotificationColor.Success.ToColorName(),
+                    management = "product Management",
+                    msg = "product was updated successfully into the database.",
+                    editResult = product
+                });
+            }
+            return Json(new
+            {
+                status = JsonStatus.Exist,
+                link = "",
+                color = NotificationColor.Error.ToColorName(),
+                management = "product Management",
+                msg = ModelState.Keys.SelectMany(k => ModelState[k].Errors)
+                                                    .Select(m => m.ErrorMessage).ToArray()
+            });
         }
 
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> _Edit(int id)
         {
-           // ViewBag.categories = new SelectList(_categoryRepository.GetAll(), "Id", "Name");
 
             if (id == null)
             {
-                return NotFound();
+                return Json(new
+                {
+                    status = JsonStatus.Exist,
+                    link = "",
+                    color = NotificationColor.Error.ToColorName(),
+                    management = "product Management",
+                    msg = "product Not found."
+                });
             }
 
             var product = await _productRepository.FindAsync(id);
             if (product == null)
             {
-                return NotFound();
+                return Json(new
+                {
+                    status = JsonStatus.Exist,
+                    link = "",
+                    color = NotificationColor.Error.ToColorName(),
+                    management = "product Management",
+                    msg = "product Not found."
+                });
             }
-            return View(new ProductVM
-            {
-                CategoryList = _categoryRepository.GetAll().Select(v => new SelectListItem
+            var model = await _productRepository.FindAsync(id).ConfigureAwait(false);
+            var modelVm = _mapper.Map<ProductVM>(model);
+
+            modelVm.CategoryList= 
+                 _categoryRepository.GetAll().Select(v => new SelectListItem
                 {
                     Text = v.Name,
                     Value = v.Id.ToString()
-                }).ToList()
-            });
-           // return View(_mapper.Map<ProductVM>(product));
+                }).ToList();
+            return PartialView(modelVm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, ProductVM product)
         {
+            product.InsertedDate = DateTime.Now.Date;
 
-            if (id != product.Id)
-            {
-                return NotFound();
-            }
-            if (!string.IsNullOrEmpty(product.Name))
-            {
-                var isExist = (await _categoryRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower() && c.Id != product.Id).ConfigureAwait(false)).Any();
-                if (isExist)
-                    return View(product);
-            }
             if (ModelState.IsValid)
             {
 
+                if (!string.IsNullOrEmpty(product.Name))
+                {
+                    var isExist = (await _productRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower() && c.Id != product.Id).ConfigureAwait(false)).Any();
+                    if (isExist)
+                        // return View(category);
+                        return Json(new
+                        {
+                            status = JsonStatus.Exist,
+                            link = "",
+                            color = NotificationColor.Error.ToColorName(),
+                            management = "product Management",
+                            msg = "product is exist.",
+                            editResult = product
+                        });
+                }
+
                 await _productRepository.UpdateAsync(_mapper.Map<Products>(product));
-                return RedirectToAction(nameof(Index));
-
-                /*if (result > 0)
-                    return RedirectToAction(nameof(Index));
-                else
-                    return View(product);*/
-             }
-            return View(product);
-        }
-
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
+                // return RedirectToAction(nameof(Index));
+                return Json(new
+                {
+                    status = JsonStatus.Success,
+                    link = "",
+                    color = NotificationColor.Success.ToColorName(),
+                    management = "product Management",
+                    msg = "product was updated successfully into the database.",
+                    editResult = product
+                });
             }
 
-            var product = await _productRepository.FindAsync(id);
-            if (product == null)
+            return Json(new
             {
-                return NotFound();
-            }
-
-            return View(_mapper.Map<ProductVM>(product));
+                status = JsonStatus.Exist,
+                link = "",
+                color = NotificationColor.Error.ToColorName(),
+                management = "product Management",
+                msg = ModelState.Keys.SelectMany(k => ModelState[k].Errors)
+                                         .Select(m => m.ErrorMessage).ToArray()
+            });
         }
 
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var product = await _productRepository.FindAsync(id);
-            await _productRepository.RemoveAsync(product);
-            return RedirectToAction(nameof(Index));
+            var model = await _productRepository.FindAsync(id).ConfigureAwait(false);
+            await _productRepository.RemoveAsync(model).ConfigureAwait(false);
+
+            return Json(new
+            {
+                status = JsonStatus.Success,
+                link = "",
+                color = NotificationColor.Success.ToColorName(),
+                management = "category",
+                msg = "category was deleted successfully form the database."
+            });
         }
+
     }
 }
