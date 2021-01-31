@@ -36,12 +36,17 @@ namespace ProductsApp.Controllers
         {
             return Json(_mapper.Map<List<ProductVM>>(await _productRepository.GetAllAsync()).Take(3));
         } */
-        public IActionResult IndexAjax()
+       
+        public IActionResult IndexAjax([FromBody] ProductVM model)
         {
-            var data = _productRepository.GetAllAsyncPage(0, 3);
-            return Json(data.Item1);
+            var data = _productRepository.GetAllAsyncPage(model.PageNo, model.PageSize);
+            // return Json(data.Item1);
+            return Json(new
+            {
+                TotalItems = data.Item2,
+                Data = data.Item1
+            });
         }
-
 
         public async Task<IActionResult> _Details(int? id)
         {

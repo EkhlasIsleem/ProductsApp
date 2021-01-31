@@ -20,6 +20,46 @@ toastr.options = {
     "showMethod": "fadeIn",
     "hideMethod": "fadeOut"
 }
+var delayTimerGrid;
+function loadPaginatedGridWithDelay(url, type, model, gridOptionsApi, params) {
+    clearTimeout(delayTimerGrid);
+    delayTimerGrid = setTimeout(function () {
+        loadPaginatedGrid(url, type, model, gridOptionsApi, params);
+    }, 500);
+}
+var ajaxcall = [{ Item: null, url: null }];
+function loadPaginatedGrid(url, type, model, gridOptionsApi, params) {
+    gridOptionsApi.api.showLoadingOverlay();
+
+    ajaxcallitem = $.ajax({
+        url: url,
+        dataType: "json",
+        type: type,
+        contentType: "application/json",
+        data: JSON.stringify(model),
+        success: function (rows) {
+            var lastRow = rows.totalItems;
+           /* if (rows.totalItems <= params.endRow) {
+                lastRow = rows.totalItems;
+            }*/
+            params.successCallback(rows.data, lastRow);
+            gridOptionsApi.api.hideOverlay();
+
+            if (rows.data != undefined && rows.data.length == 0) {
+                gridOptionsApi.api.showNoRowsOverlay();
+            }
+        },
+      /*  beforeSend: function () {
+            var item = ajaxcall.filter(p => p.url == url);
+            if (item.length > 0) {
+                // item[item.length - 1].Item.abort();
+                //   ajaxcall.slice(ajaxcall.indexOf([item.length - 1]), 1);
+            }
+        }*/
+    });
+   // ajaxcall.push({ Item: ajaxcallitem, url: url });
+};
+
 function ShowMessage(msg, color, title) {
 
     if (msg instanceof Array) {
