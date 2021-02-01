@@ -22,16 +22,22 @@
         {
             headerName: 'Action', editable: false, suppressSizeToFit: true,
             cellRenderer: function (params) {
-                return  '<a href="/Categories/_Edit/' + params["data"]["id"] + '" ajaxType="GET" class="btn btn-sm btn-outline-primary openModal">Edit</a>&nbsp;'
-                    + '<a href="/Categories/Delete/' + params["data"]["id"] + '"  ajaxType="GET" confirmButtonText="Yes, Cancel it!" msgHeader="Canceled!"  class="btn btn-sm btn-outline-danger btnDelete confirm">Delete</a>&nbsp;'
-                    + '<a href="/Categories/_Details/' + params["data"]["id"] + '"ajaxType="GET"  class="btn btn-sm btn-outline-success openModal">Details</a>'
+                if (params.data) {
 
+                    return '<a href="/Categories/_Edit/' + params["data"]["id"] + '" ajaxType="GET" class="btn btn-sm btn-outline-primary openModal">Edit</a>&nbsp;'
+                        + '<a href="/Categories/Delete/' + params["data"]["id"] + '"  ajaxType="GET" confirmButtonText="Yes, Cancel it!" msgHeader="Canceled!"  class="btn btn-sm btn-outline-danger btnDelete confirm">Delete</a>&nbsp;'
+                        + '<a href="/Categories/_Details/' + params["data"]["id"] + '"ajaxType="GET"  class="btn btn-sm btn-outline-success openModal">Details</a>'
+                }
             }
 
         }
     ];
 
     var gridOptions = {
+        columnDefs: columnDefs,
+        rowSelection: 'multiple',
+        domLayout: 'autoHeight',
+
         defaultColDef: {
             editable: false,
             enableRowGroup: true,
@@ -43,39 +49,49 @@
             flex: 1
         },
         suppressRowClickSelection: true,
-        columnDefs: columnDefs,
-        paginationPageSize: 20,
         pagination: true,
         getRowHeight: function (params) {
             return 35;
         },
-        rowSelection: 'multiple',
-        domLayout: 'autoHeight'
-
+        rowModelType: 'infinite',
+        animateRows: true,
+        paginationPageSize: 3,
+        cacheOverflowSize: 2,
+        maxConcurrentDatasourceRequests: 2,
+        infiniteInitialRowCount: 1,
+        maxBlocksInCache: 2,
+        cacheBlockSize: 3,
+        enableColResize: true,
+        suppressMenuHide: true,
+        onGridReady: function () {
+            gridOptions.api.sizeColumnsToFit();
+        },
     };
-
+    var dataSourceTest = '';
     document.addEventListener('DOMContentLoaded', function () {
         var gridDiv = document.querySelector('#categoryGrid');
         new agGrid.Grid(gridDiv, gridOptions);
 
-        agGrid
-            .simpleHttpRequest({
-                url:
-                    'Categories/IndexAjax',
-            })
-            .then(function (data) {
-                gridOptions.api.setRowData(data);
-            });
+        dataSourceTest = {
+            //  rowCount: null, // behave as infinite scroll
+            getRows: function (params) {
+                var model = {
+                    PageNo: gridOptions.api.paginationGetCurrentPage(),
+                    PageSize: gridOptions.paginationPageSize,
+                };
+                loadPaginatedGridWithDelay('/Categories/IndexAjax/', 'POST', model, gridOptions, params);
+            },
+            getRowHeight: function (params) {
+                return 35;
+            },
+        };
+        gridOptions.api.showNoRowsOverlay();
+        gridOptions.api.setDatasource(dataSourceTest);
     });
-    function refresh() {
-        agGrid
-            .simpleHttpRequest({
-                url:
-                    'Categories/IndexAjax',
-            })
-            .then(function (data) {
-                gridOptions.api.setRowData(data);
-            });
+
+
+    function refresh(e) {
+        gridOptions.api.setDatasource(dataSourceTest);
     }
 </script>
 

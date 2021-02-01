@@ -32,9 +32,15 @@ namespace ProductsApp.Controllers
             return View();
         }
 
-        public async Task<IActionResult> IndexAjax()
+        public IActionResult IndexAjax([FromBody] CategoryVM model)
         {
-            return Json(_mapper.Map<List<CategoryVM>>(await _categoryRepository.GetAllAsync()));
+            var data = _categoryRepository.GetAllAsyncPage(model.PageNo, model.PageSize);
+            // return Json(data.Item1);
+            return Json(new
+            {
+                TotalItems = data.Item2,
+                Data = data.Item1
+            });
         }
         public async Task<IActionResult> _Details(int? id)
         {

@@ -47,15 +47,19 @@
         domLayout: 'autoHeight',
 
         defaultColDef: {
-            editable: false, 
+            editable: false,
+            enableRowGroup: true,
+            enablePivot: true,
+            enableValue: true,
             sortable: true,
-            resizable: true, 
-            flex:1
+            resizable: true,
+            filter: true,
+            flex: 1
         },
         suppressRowClickSelection: true,
         pagination: true,
         getRowHeight: function (params) {
-            return 50;
+            return 35;
         },
         rowModelType: 'infinite',
         animateRows: true, 
@@ -77,7 +81,7 @@
         new agGrid.Grid(gridDiv, gridOptions);
 
         dataSourceTest = {
-        rowCount: null, // behave as infinite scroll
+      //  rowCount: null, // behave as infinite scroll
         getRows: function (params) { 
             var model = {
                 PageNo: gridOptions.api.paginationGetCurrentPage(),
@@ -85,24 +89,14 @@
             };
             loadPaginatedGridWithDelay('/Product/IndexAjax/', 'POST', model, gridOptions, params);
               },
-           getRowHeight: function (params) {
-                  return 50;
-              },
+            getRowHeight: function (params) {
+                return 35;
+            },
     }; 
         gridOptions.api.showNoRowsOverlay();
         gridOptions.api.setDatasource(dataSourceTest);
     });
      
-  /*  function refresh() {
-        agGrid
-            .simpleHttpRequest({
-                url:
-                    'Product/IndexAjax',
-            })
-            .then(function (data) {
-                gridOptions.api.setRowData(data);
-            });
-    }*/
 
     function refresh(e) {
         gridOptions.api.setDatasource(dataSourceTest);

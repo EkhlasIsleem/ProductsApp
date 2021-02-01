@@ -71,8 +71,6 @@ function ShowMessage(msg, color, title) {
 
         msg = errorsHtml;
     }
-    //Command: toastr["success"]("ww", "w")
-
     Command: toastr[color](msg, title);
 }
 function isNotNullAndUndef(variable) {
