@@ -2,11 +2,21 @@
 
 <div class="row">
     <h3 class="col-sm-10"> All Products</h3>
-    <a href="/Product/_Create" class="btn btn-sm btn-outline-primary openModal"  ajaxType="GET">
+    <a href="/Product/_Create" class="btn btn-sm btn-outline-primary openModal" ajaxType="GET">
         Add Product
     </a>
+    <br/>
+    <div class="col-4">
+        <div class="kt-input-icon kt-input-icon--left">
+            <input type="text" class="form-control  clear-search-input" placeholder="Search..." oninput="refresh();" id="generalSearch">
+            <span class="kt-input-icon__icon kt-input-icon__icon--left">
+                <span><i class="la la-search"></i></span>
+            </span>
+        </div>
+    </div>
 </div>
 <br />
+
 <div id="productGrid" style="width:100%;" class="ag-theme-balham"></div>
 
 <script>
@@ -28,13 +38,16 @@
             headerName: "Code", field: "code"
         },
         {
+            headerName: "Category Name", field: "prodCat"
+        },
+        {
             headerName: 'Action', editable: false, suppressSizeToFit: true,
             cellRenderer: function (params) {
                 if (params.data) {
-                    return '<a href="/Product/_Edit/' + params["data"]["id"] + '" ajaxType="GET" class="btn btn-sm btn-outline-primary openModal">Edit</a>&nbsp;'
-                        + '<a href="/Product/Delete/' + params["data"]["id"] + '"  ajaxType="GET" confirmButtonText="Yes, Cancel it!" msgHeader="Canceled!"  class="btn btn-sm btn-outline-danger btnDelete confirm">Delete</a>&nbsp;'
-                        + '<a href="/Product/_Details/' + params["data"]["id"] + '"ajaxType="GET"  class="btn btn-sm btn-outline-success openModal">Details</a>'
-
+                    return `<a href="/Product/_Edit/${params.data.id}" ajaxType="GET" class="btn btn-sm btn-outline-primary openModal">Edit</a>&nbsp;
+                        <a href="/Product/Delete/${params.data.id}" ajaxType="GET" confirmButtonText="Yes, Cancel it!" msgHeader="Canceled!"  class="btn btn-sm btn-outline-danger btnDelete confirm">Delete</a>&nbsp;
+                       <a href="/Product/_Details/${params.data.id}"  ajaxType="GET"  class="btn btn-sm btn-outline-success openModal">Details</a>`;
+                    
                 }
             }
         }
@@ -86,6 +99,8 @@
             var model = {
                 PageNo: gridOptions.api.paginationGetCurrentPage(),
                 PageSize: gridOptions.paginationPageSize,
+                SearchText: document.getElementById('generalSearch').value,
+
             };
             loadPaginatedGridWithDelay('/Product/IndexAjax/', 'POST', model, gridOptions, params);
               },

@@ -25,9 +25,12 @@ namespace Product.DataAccess.ViewModel
         public string StartDateFormatted { get; set; }
         [Required(ErrorMessage = "Category is Required")]
         public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
         public List<SelectListItem> CategoryList { get; set; }
         public int PageNo { get; set; }
         public int PageSize { get; set; }
+        public string SearchText { get; set; }
+        
         // public virtual CategoryVM Category { get; set; }
     }
 }

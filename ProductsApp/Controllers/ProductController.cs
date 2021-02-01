@@ -11,6 +11,7 @@ using AutoMapper;
 using System.Globalization;
 using Product.DataAccess.Enum;
 using Product.DataAccess.Base.Enum;
+using Microsoft.EntityFrameworkCore;
 
 namespace ProductsApp.Controllers
 {
@@ -31,30 +32,37 @@ namespace ProductsApp.Controllers
         {
             return View();
         }
-
-       /* public async Task<IActionResult> IndexAjax()
-        {
-            return Json(_mapper.Map<List<ProductVM>>(await _productRepository.GetAllAsync()).Take(3));
-        } */
-       
         public IActionResult IndexAjax([FromBody] ProductVM model)
         {
-            var data = _productRepository.GetAllAsyncPage(model.PageNo, model.PageSize);
+            var count = _productRepository.GetAllAsyncPage(model.PageNo, model.PageSize
+                , c => c.Name.ToLower().Contains(model.SearchText)).Item2;
+            var data = _productRepository.GetAllAsyncPage(model.PageNo, model.PageSize
+                , c => c.Name.ToLower().Contains(model.SearchText)).Item1.Include(c => c.Category).Select(v => new {
+                    Name = v.Name,
+                    InsertedDate = v.InsertedDate,
+                    Price = v.Price,
+                    Code = v.Code,
+                    ProdCat = v.Category.Name
+                }).ToList(); 
             // return Json(data.Item1);
+           // var modelVm = _mapper.Map<IQueryable<ProductVM>>(data);
+
+           
             return Json(new
             {
-                TotalItems = data.Item2,
-                Data = data.Item1
-            });
+                TotalItems = count,
+                Data = data
+        });
         }
-
+        public IActionResult TestData()
+        {
+            return Json(_productRepository.GetAllQuerable().Include(c => c.Category).Select(v => new {
+                ProName = v.Name,
+                ProdCat = v.Category.Name
+            }).ToList());
+        }
         public async Task<IActionResult> _Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var product = await _productRepository.FindAsync(id);
             if (product == null)
             {
@@ -85,8 +93,6 @@ namespace ProductsApp.Controllers
             // product.StartDateFormatted = DateTime.ParseExact(product.StartDateFormatted, "MM/dd/yyyy", CultureInfo.InvariantCulture); 
             if (ModelState.IsValid)
             {
-                if (!string.IsNullOrEmpty(product.Name))
-            {
                 var isExist = (await _productRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower()).ConfigureAwait(false)).Any();
                 if (isExist)
                     return Json(new
@@ -97,9 +103,7 @@ namespace ProductsApp.Controllers
                         management = "product Management",
                         msg = "product is exist.",
                         editResult = product
-                    });
-            }
-           
+                    });           
             await _productRepository.AddAsync(_mapper.Map<Products>(product));
 
                 return Json(new
@@ -126,18 +130,6 @@ namespace ProductsApp.Controllers
         public async Task<IActionResult> _Edit(int id)
         {
 
-            if (id == null)
-            {
-                return Json(new
-                {
-                    status = JsonStatus.Exist,
-                    link = "",
-                    color = NotificationColor.Error.ToColorName(),
-                    management = "product Management",
-                    msg = "product Not found."
-                });
-            }
-
             var product = await _productRepository.FindAsync(id);
             if (product == null)
             {
@@ -150,8 +142,7 @@ namespace ProductsApp.Controllers
                     msg = "product Not found."
                 });
             }
-            var model = await _productRepository.FindAsync(id).ConfigureAwait(false);
-            var modelVm = _mapper.Map<ProductVM>(model);
+            var modelVm = _mapper.Map<ProductVM>(product);
 
             modelVm.CategoryList= 
                  _categoryRepository.GetAll().Select(v => new SelectListItem
@@ -164,39 +155,30 @@ namespace ProductsApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, ProductVM product)
+        public async Task<IActionResult> Edit(ProductVM product)
         {
-            product.InsertedDate = DateTime.Now.Date;
-
             if (ModelState.IsValid)
             {
-
-                if (!string.IsNullOrEmpty(product.Name))
-                {
-                    var isExist = (await _productRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower() && c.Id != product.Id).ConfigureAwait(false)).Any();
-                    if (isExist)
-                        // return View(category);
-                        return Json(new
-                        {
-                            status = JsonStatus.Exist,
-                            link = "",
-                            color = NotificationColor.Error.ToColorName(),
-                            management = "product Management",
-                            msg = "product is exist.",
-                            editResult = product
-                        });
-                }
-
+                var isExist = (await _productRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower() && c.Id != product.Id).ConfigureAwait(false)).Any();
+                if (isExist)
+                    // return View(category);
+                    return Json(new
+                    {
+                        status = JsonStatus.Exist,
+                        link = "",
+                        color = NotificationColor.Error.ToColorName(),
+                        management = "product Management",
+                        msg = "product is exist."
+                    });
+                Products model = await _productRepository.FindAsync(product.Id).ConfigureAwait(false);
                 await _productRepository.UpdateAsync(_mapper.Map<Products>(product));
-                // return RedirectToAction(nameof(Index));
                 return Json(new
                 {
                     status = JsonStatus.Success,
                     link = "",
                     color = NotificationColor.Success.ToColorName(),
                     management = "product Management",
-                    msg = "product was updated successfully into the database.",
-                    editResult = product
+                    msg = "product was updated successfully into the database."
                 });
             }
 

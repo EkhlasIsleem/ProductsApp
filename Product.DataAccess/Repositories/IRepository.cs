@@ -8,11 +8,12 @@ namespace Product.DataAccess.Repositories
 {
     public interface IRepository<TEntity> where TEntity : class
     {
+        IQueryable<TEntity> GetAllQuerable();
         Task<TEntity> FindAsync(object id);
 
         TEntity Find(object id);
 
-        Tuple<List<TEntity>, int> GetAllAsyncPage(int pageNo, int pageSize);
+        Tuple<IQueryable<TEntity>, int> GetAllAsyncPage(int pageNo, int pageSize, Expression<Func<TEntity, bool>> predicate);
         Task<IEnumerable<TEntity>> GetAllAsync();
        IEnumerable<TEntity> GetAll();
 

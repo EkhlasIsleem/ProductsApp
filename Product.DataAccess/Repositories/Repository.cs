@@ -35,16 +35,24 @@ namespace Product.DataAccess.Repositories
         {
             return  Context.Set<TEntity>().ToList();
         }
-        public Tuple<List<TEntity>, int> GetAllAsyncPage(int pageNo, int pageSize)
+        public Tuple<IQueryable<TEntity>, int> GetAllAsyncPage(int pageNo, int pageSize, Expression<Func<TEntity, bool>> predicate)
         {
-            var data=  Context.Set<TEntity>().ToList();
+            var data =new List<TEntity>().AsQueryable();
+            if (predicate != null)
+                data = Context.Set<TEntity>().Where(predicate).AsQueryable();
+            else
+                data = Context.Set<TEntity>().AsQueryable();
             var total = data.Count();
-
+           
             if (pageNo != -1)
             {
-                data = data.Skip(pageNo * pageSize).Take(pageSize).ToList();
+                data = data.Skip(pageNo * pageSize).Take(pageSize);
             }
-            return new Tuple<List<TEntity>, int>(data, total);
+            return new Tuple<IQueryable<TEntity>, int>(data, total);
+        }
+        public IQueryable<TEntity> GetAllQuerable()
+        {
+            return Context.Set<TEntity>().AsQueryable();
         }
         public IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> predicate)
         {

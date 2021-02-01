@@ -15,5 +15,7 @@ namespace Product.DataAccess.ViewModel
         public string Description { get; set; }
         public int PageNo { get; set; }
         public int PageSize { get; set; }
+        public string SearchText { get; set; }
+
     }
 }

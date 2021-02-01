@@ -34,20 +34,18 @@ namespace ProductsApp.Controllers
 
         public IActionResult IndexAjax([FromBody] CategoryVM model)
         {
-            var data = _categoryRepository.GetAllAsyncPage(model.PageNo, model.PageSize);
+            var data = _categoryRepository.GetAllAsyncPage(model.PageNo, model.PageSize, c => c.Name.ToLower().Contains(model.SearchText));
             // return Json(data.Item1);
+            var modelVm = _mapper.Map<List<CategoryVM>>(data.Item1);
+           
             return Json(new
             {
                 TotalItems = data.Item2,
-                Data = data.Item1
+                Data = modelVm
             });
         }
-        public async Task<IActionResult> _Details(int? id)
+        public async Task<IActionResult> _Details(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
             var category = await _categoryRepository.FindAsync(id);
             if (category == null)
             {
@@ -70,20 +68,17 @@ namespace ProductsApp.Controllers
             
             if (ModelState.IsValid)
             {
-                if (!string.IsNullOrEmpty(category.Name))
+            var isExist = _categoryRepository.Get(c => c.Name == category.Name).Count() > 0;
+            if (isExist)
+                return Json(new
                 {
-                    var isExist = _categoryRepository.Get(c => c.Name == category.Name).Count() > 0;
-                    if (isExist)
-                        return Json(new
-                        {
-                            status = JsonStatus.Exist,
-                            link = "",
-                            color = NotificationColor.Error.ToColorName(),
-                            management = "Category Management",
-                            msg = "Category is exist.",
-                            editResult = category
-                        });                
-                }
+                    status = JsonStatus.Exist,
+                    link = "",
+                    color = NotificationColor.Error.ToColorName(),
+                    management = "Category Management",
+                    msg = "Category is exist.",
+                    editResult = category
+                });                
                 await _categoryRepository.AddAsync(_mapper.Map<Category>(category));
               
                 return Json(new
@@ -113,9 +108,6 @@ namespace ProductsApp.Controllers
         {
             if (ModelState.IsValid)
             {
-
-                if (!string.IsNullOrEmpty(category.Name))
-            {
                 var isExist = (await _categoryRepository.GetAsync(c => c.Name.ToLower() == category.Name.ToLower() && c.Id != category.Id).ConfigureAwait(false)).Any();
                 if (isExist)
                     // return View(category);
@@ -125,10 +117,8 @@ namespace ProductsApp.Controllers
                         link = "",
                         color = NotificationColor.Error.ToColorName(),
                         management = "Category Management",
-                        msg = "Category is exist.",
-                        editResult = category
+                        msg = "Category is exist."
                     });
-            }
              
                 await _categoryRepository.UpdateAsync(_mapper.Map<Category>(category));
                 // return RedirectToAction(nameof(Index));
@@ -138,8 +128,7 @@ namespace ProductsApp.Controllers
                     link = "",
                     color = NotificationColor.Success.ToColorName(),
                     management = "Category Management",
-                    msg = "Category was updated successfully into the database.",
-                    editResult = category
+                    msg = "Category was updated successfully into the database."
                 });
             }
 
