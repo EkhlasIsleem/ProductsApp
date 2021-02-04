@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -19,6 +20,7 @@ namespace Product.DataAccess.Models
         public decimal Price { get; set; }
         public string Code { get; set; }
         public DateTime InsertedDate { get; set; }
+        public string Image { get; set; }
 
         public int CategoryId { get; set; }
         public virtual Category Category { get; set; }

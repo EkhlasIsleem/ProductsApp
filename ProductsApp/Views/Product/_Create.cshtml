@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "Add New Product";
 }
-<form asp-action="Create" class="ajaxForm" method="post" asp-controller="Product">
+<form asp-action="Create" class="ajaxForm" method="post" asp-controller="Product" enctype="multipart/form-data">
     <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Add Product @(string.IsNullOrEmpty(Model.Name) ? "(Newly registered)" : "")</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -48,7 +48,19 @@
                     <input asp-for="Price" class="form-control" />
                     <span asp-validation-for="Price" class="text-danger"></span>
                 </div>
+                <div class="form-group">
 
+                    <div class="col-md-9">
+                        <a id="imglnk" target="_blank">
+                            <input type="hidden" asp-for="Image" id="img" />
+                            <img style="height: 219px; width: 209px;" class="imgUserlogo" />
+                        </a>
+                        <div class="UploadContainerUser">
+                            <input asp-for="files" name="files" id="imageBrowes" accept="image/*" style=" width: 100%;">
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </div>
 
@@ -65,7 +77,36 @@
         </div>
     </div>
 </form>
+<script>
+    $(function () {
+        if ($('#img').val() != '')
+            $('.imgUserlogo').attr('src', '/ProductImages/' + $('#img').val());
+        else
+            $('.imgUserlogo').attr('src', '/ProductImages/default-user.png')
+    });
 
+    $(document).ready(function () {
+        $("#imageBrowes").change(function () {
+            var File = this.files;
+            if (File && File[0]) {
+                ReadImage(File[0]);
+            }
+        })
+    })
+    var ReadImage = function (file) {
+        var reader = new FileReader;
+        var image = new Image;
+        reader.readAsDataURL(file);
+        reader.onload = function (_file) {
+            image.src = _file.target.result;
+            image.onload = function () {
+                var type = file.type;
+                $(".imgUserlogo").attr('src', _file.target.result);
+                // $("#imgPreview").show();
+            }
+        }
+    }
+</script>
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}    
 }

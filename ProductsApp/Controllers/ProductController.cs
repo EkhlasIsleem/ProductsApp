@@ -12,6 +12,8 @@ using System.Globalization;
 using Product.DataAccess.Enum;
 using Product.DataAccess.Base.Enum;
 using Microsoft.EntityFrameworkCore;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
 
 namespace ProductsApp.Controllers
 {
@@ -19,13 +21,15 @@ namespace ProductsApp.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IWebHostEnvironment _env;
         private readonly IMapper _mapper;
 
-        public ProductController(IProductRepository productRepository, ICategoryRepository categoryRepository, IMapper mapper)
+        public ProductController(IWebHostEnvironment env,IProductRepository productRepository, ICategoryRepository categoryRepository, IMapper mapper)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
             _mapper = mapper;
+            _env = env;
         }
 
         public IActionResult Index()
@@ -34,33 +38,25 @@ namespace ProductsApp.Controllers
         }
         public IActionResult IndexAjax([FromBody] ProductVM model)
         {
-            var count = _productRepository.GetAllAsyncPage(model.PageNo, model.PageSize
-                , c => c.Name.ToLower().Contains(model.SearchText)).Item2;
-            var data = _productRepository.GetAllAsyncPage(model.PageNo, model.PageSize
-                , c => c.Name.ToLower().Contains(model.SearchText)).Item1.Include(c => c.Category).Select(v => new {
+            var data0 = _productRepository.GetAllAsyncPage(model.PageNo, model.PageSize
+                , c => c.Name.ToLower().Contains(model.SearchText));
+            var data = data0.Item1.Include(c => c.Category).Select(v => new {
+                    Id=v.Id,
                     Name = v.Name,
                     InsertedDate = v.InsertedDate,
                     Price = v.Price,
                     Code = v.Code,
                     ProdCat = v.Category.Name
-                }).ToList(); 
-            // return Json(data.Item1);
-           // var modelVm = _mapper.Map<IQueryable<ProductVM>>(data);
+                }).ToList();
+          //  var modelVm = _mapper.Map<List<ProductVM>>(data0.Item1);
 
-           
             return Json(new
             {
-                TotalItems = count,
+                TotalItems = data0.Item2,
                 Data = data
-        });
+            });
         }
-        public IActionResult TestData()
-        {
-            return Json(_productRepository.GetAllQuerable().Include(c => c.Category).Select(v => new {
-                ProName = v.Name,
-                ProdCat = v.Category.Name
-            }).ToList());
-        }
+      
         public async Task<IActionResult> _Details(int? id)
         {
             var product = await _productRepository.FindAsync(id);
@@ -74,6 +70,8 @@ namespace ProductsApp.Controllers
 
         public IActionResult _Create()
         {
+            
+          
             var model = new ProductVM
             {
                 CategoryList = _categoryRepository.GetAll().Select(v => new SelectListItem
@@ -91,8 +89,26 @@ namespace ProductsApp.Controllers
         {
             product.InsertedDate = DateTime.Now.Date;
             // product.StartDateFormatted = DateTime.ParseExact(product.StartDateFormatted, "MM/dd/yyyy", CultureInfo.InvariantCulture); 
+
             if (ModelState.IsValid)
             {
+
+                String UniqueFileName = null;
+                string FilePath = null;
+                if (product.files != null)
+                {
+                    string FileNameUploader = Path.Combine(_env.WebRootPath, "ProductImages");
+                    if (!Directory.Exists(FileNameUploader))
+                    {
+                        Directory.CreateDirectory(FileNameUploader);
+                    }
+                    // UniqueFileName = Guid.NewGuid().ToString() + "_" + product.files.FileName;
+                    UniqueFileName = product.Id.ToString() + "_" + product.files.FileName;
+                    FilePath = Path.Combine(FileNameUploader, UniqueFileName);
+                    product.files.CopyTo(new FileStream(FilePath, FileMode.Create));
+                    product.Image = UniqueFileName;
+
+                }
                 var isExist = (await _productRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower()).ConfigureAwait(false)).Any();
                 if (isExist)
                     return Json(new
@@ -103,8 +119,11 @@ namespace ProductsApp.Controllers
                         management = "product Management",
                         msg = "product is exist.",
                         editResult = product
-                    });           
-            await _productRepository.AddAsync(_mapper.Map<Products>(product));
+                    });
+                var test = _mapper.Map<Products>(product);
+                test.Category = (await _categoryRepository.GetAsync(x => x.Id == product.CategoryId)).FirstOrDefault();
+
+                await _productRepository.AddAsync(test);
 
                 return Json(new
                 {
@@ -157,8 +176,38 @@ namespace ProductsApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ProductVM product)
         {
+           
             if (ModelState.IsValid)
             {
+                String UniqueFileName = null;
+                String UniqueFileNameOld = null;
+                string FilePath = null;
+                string FilePathOld = null;
+                
+                // string oldfilePath = product.files.FileName;
+                if (product.files != null)
+                {
+                    if (product.Image != null)
+                    {
+                        FilePathOld = Path.Combine(_env.WebRootPath, "ProductImages", product.Image);
+                        if (System.IO.File.Exists(FilePathOld))
+                        {
+                            System.IO.File.Delete(FilePathOld);
+                        }
+                    }
+                    string FileNameUploader = Path.Combine(_env.WebRootPath, "ProductImages");
+                    if (!Directory.Exists(FileNameUploader))
+                    {
+                        Directory.CreateDirectory(FileNameUploader);
+                    }
+                   // UniqueFileName = Guid.NewGuid().ToString() + "_" + product.files.FileName;
+                    UniqueFileName = product.Id.ToString() + "_" + product.files.FileName;
+                    FilePath = Path.Combine(FileNameUploader, UniqueFileName);
+                    
+                    product.files.CopyTo(new FileStream(FilePath, FileMode.Create));
+                    product.Image = UniqueFileName;
+
+                }
                 var isExist = (await _productRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower() && c.Id != product.Id).ConfigureAwait(false)).Any();
                 if (isExist)
                     // return View(category);
@@ -170,8 +219,11 @@ namespace ProductsApp.Controllers
                         management = "product Management",
                         msg = "product is exist."
                     });
-                Products model = await _productRepository.FindAsync(product.Id).ConfigureAwait(false);
-                await _productRepository.UpdateAsync(_mapper.Map<Products>(product));
+                //  Products model = await _productRepository.FindAsync(product.Id).ConfigureAwait(false);
+              var test = _mapper.Map<Products>(product);
+              test.Category = (await _categoryRepository.GetAsync(x => x.Id == product.CategoryId)).FirstOrDefault();
+
+                await _productRepository.UpdateAsync(test);
                 return Json(new
                 {
                     status = JsonStatus.Success,

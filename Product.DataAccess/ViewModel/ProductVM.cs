@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Product.DataAccess.CustomModel;
+using Product.DataAccess.Helper;
 using Product.DataAccess.Models;
 using System;
 using System.Collections.Generic;
@@ -7,7 +9,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
-
 namespace Product.DataAccess.ViewModel
 {
     public class ProductVM 
@@ -30,7 +31,11 @@ namespace Product.DataAccess.ViewModel
         public int PageNo { get; set; }
         public int PageSize { get; set; }
         public string SearchText { get; set; }
-        
-        // public virtual CategoryVM Category { get; set; }
+
+        [DataType(DataType.Upload)]
+        [AllowedExtensions(new string[] { ".jpg", ".png" })]
+        public IFormFile files { get; set; }
+        public string Image { get; set; }
+       // public virtual CategoryVM Category { get; set; }
     }
 }
