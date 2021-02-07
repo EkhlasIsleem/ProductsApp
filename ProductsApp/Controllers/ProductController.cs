@@ -13,7 +13,9 @@ using Product.DataAccess.Enum;
 using Product.DataAccess.Base.Enum;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
+using System.IO;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 
 namespace ProductsApp.Controllers
 {
@@ -92,22 +94,9 @@ namespace ProductsApp.Controllers
 
             if (ModelState.IsValid)
             {
-
-                String UniqueFileName = null;
-                string FilePath = null;
                 if (product.files != null)
                 {
-                    string FileNameUploader = Path.Combine(_env.WebRootPath, "ProductImages");
-                    if (!Directory.Exists(FileNameUploader))
-                    {
-                        Directory.CreateDirectory(FileNameUploader);
-                    }
-                    // UniqueFileName = Guid.NewGuid().ToString() + "_" + product.files.FileName;
-                    UniqueFileName = product.Id.ToString() + "_" + product.files.FileName;
-                    FilePath = Path.Combine(FileNameUploader, UniqueFileName);
-                    product.files.CopyTo(new FileStream(FilePath, FileMode.Create));
-                    product.Image = UniqueFileName;
-
+                    product.Image = UploadFile(product.files, null, null);
                 }
                 var isExist = (await _productRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower()).ConfigureAwait(false)).Any();
                 if (isExist)
@@ -118,7 +107,6 @@ namespace ProductsApp.Controllers
                         color = NotificationColor.Error.ToColorName(),
                         management = "product Management",
                         msg = "product is exist.",
-                        editResult = product
                     });
                 var test = _mapper.Map<Products>(product);
                 test.Category = (await _categoryRepository.GetAsync(x => x.Id == product.CategoryId)).FirstOrDefault();
@@ -131,8 +119,7 @@ namespace ProductsApp.Controllers
                     link = "",
                     color = NotificationColor.Success.ToColorName(),
                     management = "product Management",
-                    msg = "product was updated successfully into the database.",
-                    editResult = product
+                    msg = "product was created successfully into the database.",
                 });
             }
             return Json(new
@@ -179,34 +166,10 @@ namespace ProductsApp.Controllers
            
             if (ModelState.IsValid)
             {
-                String UniqueFileName = null;
-                String UniqueFileNameOld = null;
-                string FilePath = null;
-                string FilePathOld = null;
-                
                 // string oldfilePath = product.files.FileName;
                 if (product.files != null)
                 {
-                    if (product.Image != null)
-                    {
-                        FilePathOld = Path.Combine(_env.WebRootPath, "ProductImages", product.Image);
-                        if (System.IO.File.Exists(FilePathOld))
-                        {
-                            System.IO.File.Delete(FilePathOld);
-                        }
-                    }
-                    string FileNameUploader = Path.Combine(_env.WebRootPath, "ProductImages");
-                    if (!Directory.Exists(FileNameUploader))
-                    {
-                        Directory.CreateDirectory(FileNameUploader);
-                    }
-                   // UniqueFileName = Guid.NewGuid().ToString() + "_" + product.files.FileName;
-                    UniqueFileName = product.Id.ToString() + "_" + product.files.FileName;
-                    FilePath = Path.Combine(FileNameUploader, UniqueFileName);
-                    
-                    product.files.CopyTo(new FileStream(FilePath, FileMode.Create));
-                    product.Image = UniqueFileName;
-
+                    product.Image = UploadFile(product.files, product.Image,product.Id.ToString());
                 }
                 var isExist = (await _productRepository.GetAsync(c => c.Name.ToLower() == product.Name.ToLower() && c.Id != product.Id).ConfigureAwait(false)).Any();
                 if (isExist)
@@ -260,5 +223,29 @@ namespace ProductsApp.Controllers
             });
         }
 
+        public string  UploadFile(IFormFile file,string img,string id)
+        {
+
+            if (img != null)
+            {
+                //string fileName = _productRepository.Find(id).Image;
+                string FilePathOld = Path.Combine(_env.WebRootPath, "ProductImages", img);
+                if (System.IO.File.Exists(FilePathOld))
+                {
+                    System.IO.File.Delete(FilePathOld);
+                }
+            }
+            string FileNameUploader = Path.Combine(_env.WebRootPath, "ProductImages");
+            if (!Directory.Exists(FileNameUploader))
+            {
+                Directory.CreateDirectory(FileNameUploader);
+            }
+            string UniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+           // string UniqueFileName = id + "_" + file.FileName;
+            string FilePath = Path.Combine(FileNameUploader, UniqueFileName);
+
+            file.CopyTo(new FileStream(FilePath, FileMode.Create));
+            return UniqueFileName;
+        }
     }
 }

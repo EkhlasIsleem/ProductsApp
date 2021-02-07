@@ -7,14 +7,17 @@
     </button>
 </div>
 <div class="modal-body">
-
+    <input type="hidden" asp-for="Id" id="idd"/>
     <div class="container">
         <br />
         <br />
         <div class="row">
             <div class="col-md-6">
                 <div class="carousel-item active">
-                    <img class="d-block w-100" src="~/img/product.jpg" alt="">
+                    <a id="imglnk" target="_blank">
+                        <input type="hidden" asp-for="Image" id="img" />
+                        <img style="height: 219px; width: 209px;" class="imgUserlogo" />
+                    </a>
                 </div>
             </div>
             <div class="col-md-6">
@@ -57,3 +60,33 @@
         </div>
     </div>
 </div>
+<script>
+    $(function () {
+        if ($('#idd').val() != null && $('#img').val() != '')
+            $('.imgUserlogo').attr('src', '/ProductImages/' + $('#img').val());
+        else
+            $('.imgUserlogo').attr('src', '/ProductImages/default-user.png')
+    });
+
+    $(document).ready(function () {
+        $("#imageBrowes").change(function () {
+            var File = this.files;
+            if (File && File[0]) {
+                ReadImage(File[0]);
+            }
+        })
+    })
+    var ReadImage = function (file) {
+        var reader = new FileReader;
+        var image = new Image;
+        reader.readAsDataURL(file);
+        reader.onload = function (_file) {
+            image.src = _file.target.result;
+            image.onload = function () {
+                var type = file.type;
+                $(".imgUserlogo").attr('src', _file.target.result);
+                // $("#imgPreview").show();
+            }
+        }
+    }
+</script>
