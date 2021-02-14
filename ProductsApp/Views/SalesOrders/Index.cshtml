@@ -67,12 +67,18 @@
             return 35;
         },
         rowModelType: 'infinite',
-        // animateRows: true,
-        paginationPageSize: 3,
-        enableColResize: true,
-        // suppressMenuHide: true,
-        suppressAggFuncInHeader: true,
         animateRows: true,
+        paginationPageSize: 3,
+        cacheOverflowSize: 2,
+        maxConcurrentDatasourceRequests: 2,
+        infiniteInitialRowCount: 1,
+        maxBlocksInCache: 2,
+        cacheBlockSize: 3,
+        enableColResize: true,
+        suppressMenuHide: true,
+        onGridReady: function () {
+            gridOptions.api.sizeColumnsToFit();
+        }, 
     };
     var dataSourceTest = '';
     document.addEventListener('DOMContentLoaded', function () {

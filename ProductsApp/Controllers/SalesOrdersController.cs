@@ -78,24 +78,45 @@ namespace ProductsApp.Controllers
             var resultt = await _client.GetAsync($"{_client.BaseAddress}/SalesOrder?$filter=No eq '{model.No}'&$expand=SalesOrderSalesLines");
             var SalesOrderList = JsonConvert.DeserializeObject<Product.DataAccess.Models.SlaesOrderHeaderAndLines.Rootobject>(await resultt.Content.ReadAsStringAsync());
             var count = SalesOrderList.value[0].SalesOrderSalesLines.Count();
+           
+            var isExist = (await _salesOrdersRepository.GetAsync(c => c.No == model.No).ConfigureAwait(false)).Any();
+            if (isExist)
+            {
+                var SO = _salesOrdersRepository.Get(c => c.No == model.No).AsQueryable().FirstOrDefault();//.Include(b=>b.SOLines);
+                //var data =  _soLinesRepository.GetAllQuerable();
+                var data =  _soLinesRepository.GetAllAsyncPage(model.PageNo, model.PageSize, null);//.Include(c => c.SalesOrders)
+                var SOLine = data.Item1.Where(c=>c.SalesOrders.No==model.No).Select(v => new SlaesOrderHeaderAndLines.Salesordersalesline()
+                {
+                    Line_No =Convert.ToInt32(v.PartNumber),
+                    Description = v.Description,
+                    Unit_Price =Convert.ToInt32(v.Price),
+                    Quantity = Convert.ToInt32(v.Quantity),
+                }).ToList();
+
+                return Json(new
+                {
+                    TotalItems = SOLine.Count(),
+                    Data = SOLine
+                });
+            }
             return Json(new
             {
                 TotalItems = count,
                 Data = SalesOrderList.value[0].SalesOrderSalesLines
             });
-           /* var LineFromDB = _soLinesRepository.GetAllQuerable().Include(c => c.SalesOrderId).Select(v => new {
-                PartNumber = v.PartNumber.ToString(),
-                Description = v.Description,
-                Price = v.Price,
-                Quantity = v.Quantity,
-            }).ToList();
-            //  var modelVm = _mapper.Map<List<ProductVM>>(data0.Item1);
+            /* var LineFromDB = _soLinesRepository.GetAllQuerable().Include(c => c.SalesOrderId).Select(v => new {
+                 PartNumber = v.PartNumber.ToString(),
+                 Description = v.Description,
+                 Price = v.Price,
+                 Quantity = v.Quantity,
+             }).ToList();
+             //  var modelVm = _mapper.Map<List<ProductVM>>(data0.Item1);
 
-            return Json(new
-            {
-                TotalItems = LineFromDB.Count(),
-                Data = LineFromDB
-            });*/
+             return Json(new
+             {
+                 TotalItems = LineFromDB.Count(),
+                 Data = LineFromDB
+             });*/
         }
         [HttpPost]
         public async Task<IActionResult> Save(string No)

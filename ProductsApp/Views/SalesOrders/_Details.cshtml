@@ -40,7 +40,7 @@
 
 <script>
     var columnDefs = [
-        { headerName: "No", field: "line_No" },
+        { headerName: "Part", field: "line_No" },
         { headerName: "Description", field: "description" },
         { headerName: "Quantity", field: "quantity" },
         { headerName: "Price", field: "unit_Price" },
@@ -67,15 +67,18 @@
             return 35;
         },
         rowModelType: 'infinite',
-        // animateRows: true,
+        animateRows: true,
         paginationPageSize: 3,
         cacheOverflowSize: 2,
-        // maxConcurrentDatasourceRequests: 2,
-        // infiniteInitialRowCount: 1,
+        maxConcurrentDatasourceRequests: 2,
+        infiniteInitialRowCount: 1,
         maxBlocksInCache: 2,
         cacheBlockSize: 3,
         enableColResize: true,
-        // suppressMenuHide: true,
+        suppressMenuHide: true,
+        onGridReady: function () {
+            gridOptions.api.sizeColumnsToFit();
+        }, 
 
     };
     var dataSourceTest = '';
@@ -86,6 +89,8 @@
             //  rowCount: null, // behave as infinite scroll
             getRows: function (params) {
                 var model = {
+                    PageNo: gridOptions.api.paginationGetCurrentPage(),
+                    PageSize: gridOptions.paginationPageSize,
                     No: document.getElementById('No').value,
                 };
                 loadPaginatedGridWithDelay('/SalesOrders/DetailsAjax', 'POST', model, gridOptions, params);
