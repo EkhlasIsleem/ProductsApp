@@ -17,6 +17,8 @@ namespace Product.DataAccess.Data
 
         public DbSet<Category> Category { get; set; }
         public DbSet<Products> Product { get; set; }
+        public DbSet<SalesOrders> SalesOrders { get; set; }
+        public DbSet<SOLines> SOLines { get; set; }
     
     }
 }

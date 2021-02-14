@@ -39,6 +39,10 @@ namespace ProductsApp
 
             services.AddScoped<IProductRepository,ProductRepository>();
             services.AddScoped<ICategoryRepository,CategoryRepository>();
+            services.AddScoped<ISalesOrdersRepository,SalesOrdersRepository>();
+            services.AddScoped<ISOLinesRepository,SOLinesRepository > ();
+            services.AddHttpClient();
+
             services.AddAutoMapper();
 
         }

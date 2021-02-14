@@ -259,3 +259,65 @@ $(document).on("click", ".confirm", function (e) {
     });
     return false;
 });
+
+function loadDataFromUrl(url, type, grid, callpack) {
+    grid.api.showLoadingOverlay();
+
+    $.ajax({
+        url: url,
+        dataType: "json",
+        type: type,
+        contentType: "application/json",
+        success: function (httpResult) {
+            if (grid != undefined && grid != "")
+                grid.api.setRowData(httpResult);
+            if (typeof callpack === "function") {
+                callpack();
+            }
+            grid.api.hideOverlay();
+        }
+    });
+}
+
+$(document).on("click", ".saveToDB", function (e) {
+    loadAjaxFormForSaveToDB();
+});
+
+function loadAjaxFormForSaveToDB() {
+
+    $(".ajaxForm").ajaxForm(
+        {
+            success: function (json) {
+                $(".ajaxForm :submit").prop("disabled", false);
+                if (json.status == 1) {
+
+                    ShowMessage(json.msg, json.color, json.management);
+                    if (json.link != "") {
+                        setTimeout(function () { window.location.replace(json.link); }, 800);
+                    } else {
+                        $('.ajaxForm').resetForm();
+                    }
+                    $("#OpenModal").modal('hide');
+
+                    } else if (json.status == 0) {
+                    ShowMessage(json.msg, json.color, json.management);
+                } else if (json.status == -1) {
+                    if (json.projectId != undefined) {
+                        $('.ajaxForm').resetForm();
+                        $("#OpenModal").modal('hide');
+                        loadStep(2, json.projectId);
+                        return;
+                    }
+                    ShowMessage(json.msg, json.color, json.management);
+                }
+            }, beforeSubmit: function () {
+                $(".ajaxForm :submit").prop("disabled", true);
+            }
+            , error: function (json) {
+            }
+        });
+
+    $(".select-2-drodpdown").select2({
+        closeOnSelect: false,
+    });
+}
