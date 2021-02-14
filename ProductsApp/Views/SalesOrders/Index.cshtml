@@ -31,8 +31,16 @@
         },
         { headerName: "CustomerName", field: "sell_to_Customer_Name" },
         { headerName: "Description", field: "posting_Description" },
-        { headerName: "OrderDate", field: "order_Date" },
-        { headerName: "ShipmentDate", field: "shipment_Date" },
+        {
+            headerName: "OrderDate", field: "order_Date", cellRenderer: (data) => {
+                return data.value ? (new Date(data.value)).toLocaleDateString() : '';
+            }
+        },
+        {
+            headerName: "ShipmentDate", field: "shipment_Date", cellRenderer: (data) => {
+                return data.value ? (new Date(data.value)).toLocaleDateString() : '';
+            }
+        },
         { headerName: "PhoneNo", field: "phone_No" },
         { headerName: "Amount", field: "crM_Sales_Amount" },
 
@@ -75,6 +83,8 @@
             //  rowCount: null, // behave as infinite scroll
             getRows: function (params) {
                 var model = {
+                    PageNo: gridOptions.api.paginationGetCurrentPage(),
+                    PageSize: gridOptions.paginationPageSize,
                     SearchNo: document.getElementById('generalSearch').value,
                 };
                 loadPaginatedGridWithDelay('/SalesOrders/IndexAjax', 'POST', model, gridOptions, params);

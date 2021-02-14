@@ -17,6 +17,8 @@ namespace Product.DataAccess.ViewModel
         public string PhoneNo { get; set; }
         public decimal Amount { get; set; }
         public string SearchNo { get; set; }
+        public int PageNo { get; set; }
+        public int PageSize { get; set; }
 
     }
 }

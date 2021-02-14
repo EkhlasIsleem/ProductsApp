@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Product.DataAccess.Base.Enum;
 using Product.DataAccess.Enum;
@@ -23,17 +24,13 @@ namespace ProductsApp.Controllers
         private readonly ISOLinesRepository _soLinesRepository;
         private readonly HttpClient _client;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IMapper _mapper;
 
-        public SalesOrdersController(ISalesOrdersRepository salesOrdersRepository, ISOLinesRepository soLinesRepository,IHttpClientFactory httpClientFactory, IMapper mapper)
+        public SalesOrdersController(ISalesOrdersRepository salesOrdersRepository, ISOLinesRepository soLinesRepository,IHttpClientFactory httpClientFactory)
         {
             _salesOrdersRepository = salesOrdersRepository;
             _soLinesRepository = soLinesRepository;
             _client = CreateHttpClientWithNTLM();
             _httpClientFactory = httpClientFactory;
-            _mapper = mapper;
-
-
         }
         public IActionResult Index()
         {
@@ -41,27 +38,34 @@ namespace ProductsApp.Controllers
         }
         public async Task<JsonResult> IndexAjax([FromBody] SalesOrdersVM model)
         {
-           
-            if (!string.IsNullOrEmpty(model.SearchNo))
+            var resultt = await _client.GetAsync($"{_client.BaseAddress}/SalesOrder?$filter=No eq '{model.SearchNo}'");
+            var SalesOrderList = JsonConvert.DeserializeObject<Product.DataAccess.Models.SlaesOrderHeaderAndLines.Rootobject>(await resultt.Content.ReadAsStringAsync());
+            if (string.IsNullOrEmpty(model.SearchNo))
             {
-                var resultt = await _client.GetAsync($"{_client.BaseAddress}/SalesOrder?$filter=No eq '{model.SearchNo}'");
-                var SalesOrderList = JsonConvert.DeserializeObject<Product.DataAccess.Models.SlaesOrderHeaderAndLines.Rootobject>(await resultt.Content.ReadAsStringAsync());
-
+                var data = _salesOrdersRepository.GetAllAsyncPage(model.PageNo, model.PageSize,null);
+                var SO = data.Item1.Select(v => new SlaesOrderHeaderAndLines.Value()
+                {
+                    No = v.No,
+                    Sell_to_Customer_Name = v.CustomerName,
+                    Posting_Description = v.Discription ,
+                    SO_Status = v.SOStatus,
+                    Order_Date = v.OrderDate.ToString(),
+                    Shipment_Date = v.ShipmentDate.ToString(),
+                    Phone_No  = v.PhoneNo,
+                    CRM_Sales_Amount =Convert.ToInt32(v.Amount)
+                }).ToList();
                 return Json(new
                 {
-                    TotalItems = SalesOrderList.value.Count(),
-                    Data = SalesOrderList.value
+                    TotalItems = data.Item2,
+                    Data = SO
                 });
             }
            
-                var data =  _salesOrdersRepository.GetAllQuerable();
-                var modelVm = _mapper.Map<List<SalesOrdersVM>>(data);
-                return Json(new
-                {
-                    TotalItems = data.Count(),
-                    Data = modelVm
-                });
-            
+            return Json(new
+            {
+                TotalItems = SalesOrderList.value.Count(),
+                Data = SalesOrderList.value
+            });
         }
         public IActionResult _Details(string No)
         {
@@ -79,6 +83,19 @@ namespace ProductsApp.Controllers
                 TotalItems = count,
                 Data = SalesOrderList.value[0].SalesOrderSalesLines
             });
+           /* var LineFromDB = _soLinesRepository.GetAllQuerable().Include(c => c.SalesOrderId).Select(v => new {
+                PartNumber = v.PartNumber.ToString(),
+                Description = v.Description,
+                Price = v.Price,
+                Quantity = v.Quantity,
+            }).ToList();
+            //  var modelVm = _mapper.Map<List<ProductVM>>(data0.Item1);
+
+            return Json(new
+            {
+                TotalItems = LineFromDB.Count(),
+                Data = LineFromDB
+            });*/
         }
         [HttpPost]
         public async Task<IActionResult> Save(string No)
